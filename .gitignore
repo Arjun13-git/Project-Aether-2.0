@@ -63,3 +63,14 @@ System-Design/
 
 # Misc
 *.log
+
+# Claude Code instructions
+CLAUDE.md
+
+# Large / original geodata — never committed (ADR-023)
+*.SAFE/
+*.gpkg
+
+# Test fixtures — the ONLY raster exception (ADR-023).
+# Tiny curated rasters (<= 512 KiB each, provenance sidecar required for real data).
+!apps/api/tests/fixtures/tiny/**/*.tif
