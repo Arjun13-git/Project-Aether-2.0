@@ -1,0 +1,65 @@
+# Environment
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+
+# Node
+node_modules/
+.next/
+out/
+.turbo/
+*.tsbuildinfo
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local data / generated artifacts
+data/raw/
+data/cache/
+data/processed/
+data/derived/
+artifacts/
+runs/
+logs/
+*.tif
+*.tiff
+*.jp2
+*.parquet
+
+# Database/local services
+postgres-data/
+redis-data/
+
+# Secrets / credentials
+*.pem
+*.key
+credentials.json
+service-account*.json
+
+# Local architecture notes — intentionally not versioned
+System-Design/
+
+# Claude/local agent state
+.claude/
+
+# Misc
+*.log
