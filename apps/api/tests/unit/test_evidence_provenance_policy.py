@@ -41,7 +41,10 @@ def test_valid_evidence_passes():
         (ev([MeasurementDraft("coverage_a", "fraction", 0.9, M)]), "fraction_denominator"),
         (ev([MeasurementDraft("coverage_a", "fraction", 0.9, M, denominator="aoi_area")]), "fraction_denominator"),
         (ev([MeasurementDraft("coverage_a", "fraction", 0.9, M, denominator="aoi_grid_area")]), "fraction_denominator"),
-        (ev([MeasurementDraft("changed_fraction", "fraction", 0.1, M)]), "unknown_quantity"),
+        # changed_fraction is a registered change quantity since Phase 2 (PHASE-2-RESOLUTION §E); without its
+        # joint_valid_area denominator it is still rejected. An unregistered name stays unknown.
+        (ev([MeasurementDraft("changed_fraction", "fraction", 0.1, M)]), "fraction_denominator"),
+        (ev([MeasurementDraft("change_magnitude", "value", 0.1, M)]), "unknown_quantity"),
         (ev([MeasurementDraft("aoi_area", "value", float("nan"), M)]), "measurement_not_finite"),
         (ev([MeasurementDraft("aoi_area", "value", None, M)]), "unavailable_without_reason"),
         (ev([MeasurementDraft("aoi_area", "mean", 1.0, M)]), "statistic_not_allowed"),

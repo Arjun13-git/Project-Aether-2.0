@@ -22,7 +22,7 @@ from aether.domain import registries
 from aether.domain.errors import InvariantViolation
 
 # Facts keys whose values may legitimately be numeric identifiers (C7 §9 allow-list).
-NUMERIC_FACT_KEYS = frozenset({"epsg", "utm_zone", "utm_epsg"})
+NUMERIC_FACT_KEYS = frozenset({"epsg", "utm_zone", "utm_epsg", "event_label"})  # event_label: C-17 identifier
 
 
 def new_id(prefix: str) -> str:
@@ -55,6 +55,9 @@ class EvidenceDraft:
     geometry: dict[str, Any] | None = None  # GeoJSON, EPSG:4326
     observed_period_a: tuple[str, str] | None = None  # inclusive ISO dates
     artifact_keys: list[str] = field(default_factory=list)  # resolved to artifact UUIDs at persist time
+    observed_period_b: tuple[str, str] | None = None  # change runs (C-16)
+    confidence_band: str = "n/a"  # C5 §8 band for change events (C-16); "n/a" elsewhere
+    geometry_artifact_key: str | None = None  # authoritative native-CRS geometry artifact (C5 §10)
     evidence_id: str = field(default_factory=lambda: new_id("ev"))
 
     def measurement(self, quantity: str, statistic: str | None = None) -> MeasurementDraft:
@@ -107,6 +110,10 @@ def validate_evidence(ev: EvidenceDraft) -> None:
                 raise InvariantViolation("fraction_denominator", f"denominator {expected} missing from evidence")
     if ev.geometry is not None and not shape(ev.geometry).is_valid:
         raise InvariantViolation("evidence_geometry_invalid", "evidence geometry is invalid")
+    if ev.confidence_band not in ("higher", "moderate", "lower", "n/a"):
+        raise InvariantViolation("confidence_band_invalid", f"unknown confidence band {ev.confidence_band!r}")
+    if ev.confidence_band != "n/a" and ev.kind != "change_event":
+        raise InvariantViolation("confidence_band_kind", "confidence bands belong to change_event evidence (C5 §8)")
 
 
 def unit_of(quantity: str) -> str:

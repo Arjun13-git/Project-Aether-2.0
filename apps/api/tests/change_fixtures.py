@@ -5,6 +5,7 @@ on the same grid is identical, and a B-period ``shift_px`` is a real image-conte
 - NIR carries a smooth seeded texture anchored to a world lattice (co-registration signal);
 - every band gets seeded per-item Gaussian noise (so robust MADs are non-zero);
 - ``event_boxes`` raise red DN inside world rectangles (an NDVI drop: a veg_loss correlate);
+- ``red_boxes`` paint (box, red DN) pairs in order, later boxes overwriting earlier ones;
 - ``cloud_west_of`` sets SCL = 9 (cloud) west of a world x; ``cloud_boxes`` set SCL = 9 inside boxes.
 """
 
@@ -51,6 +52,7 @@ def _texture() -> np.ndarray:
 class ItemWorld:
     shift_px: int = 0
     event_boxes: tuple[Box, ...] = ()
+    red_boxes: tuple[tuple[Box, float], ...] = ()
     cloud_west_of: float | None = None
     cloud_boxes: tuple[Box, ...] = ()
 
@@ -131,6 +133,8 @@ class WorldReader:
             if key == "red":
                 for bx in w.event_boxes:
                     dn[(x >= bx[0]) & (x < bx[2]) & (y >= bx[1]) & (y < bx[3])] = 2800.0
+                for bx, value in w.red_boxes:
+                    dn[(x >= bx[0]) & (x < bx[2]) & (y >= bx[1]) & (y < bx[3])] = value
             seed = [zlib.crc32(item_id.encode()), science.REQUIRED_ASSETS.index(key)]
             dn = dn + np.random.default_rng(seed).normal(0.0, self.noise_dn, grid.shape)
             data, dtype = np.clip(np.rint(dn), 1, 65534).astype(np.uint16), "uint16"

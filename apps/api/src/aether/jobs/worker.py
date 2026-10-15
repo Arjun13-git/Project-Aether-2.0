@@ -12,7 +12,7 @@ import threading
 import time
 from typing import Any
 
-from sqlalchemy import Engine
+from sqlalchemy import Engine, text
 
 from aether.db.engine import get_engine
 from aether.domain.errors import AetherError
@@ -20,7 +20,7 @@ from aether.geo.io.windows import CachedAssetReader, RasterioAssetReader
 from aether.geo.snapshot import Cancelled
 from aether.geo.stac.client import EarthSearchClient
 from aether.jobs import queue
-from aether.services import snapshot_run
+from aether.services import change_persistence, snapshot_run
 from aether.settings import get_settings
 from aether.storage.store import LocalFilesystemStore
 
@@ -76,7 +76,8 @@ def run_job(engine: Engine, job: dict[str, Any], **deps: Any) -> None:
         try:
             if job["kind"] != "analysis_run":
                 raise AetherError("job_kind_not_available", f"{job['kind']} jobs do not exist in Phase 1")
-            outcome = snapshot_run.execute(engine, job, heartbeat=hb, **deps)
+            execute = change_persistence.execute if _run_type(engine, job) == "change" else snapshot_run.execute
+            outcome = execute(engine, job, heartbeat=hb, **deps)
             log.info("job.succeeded id=%s outcome=%s %.1fs", job["id"], outcome, time.perf_counter() - t0)
         except Cancelled:
             queue.mark_cancelled(engine, job)
@@ -91,6 +92,16 @@ def run_job(engine: Engine, job: dict[str, Any], **deps: Any) -> None:
                 job,
                 {"code": "internal_error", "message": type(exc).__name__, "retryable": False, "stage": hb.stage},
             )
+
+
+def _run_type(engine: Engine, job: dict[str, Any]) -> str:
+    """Dispatch by the run's own type: snapshot runs keep the unchanged Phase 1 path."""
+    with engine.connect() as conn:
+        return str(
+            conn.execute(
+                text("SELECT type FROM analysis_runs WHERE id = :id"), {"id": job["payload"]["analysis_run_id"]}
+            ).scalar_one()
+        )
 
 
 def default_deps() -> dict[str, Any]:

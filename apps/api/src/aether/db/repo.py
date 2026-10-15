@@ -312,16 +312,20 @@ def insert_evidence(
 ) -> str:
     validate_evidence(ev)
     ids = [artifact_ids[k] for k in ev.artifact_keys] if (ev.artifact_keys and artifact_ids) else []
-    if ev.artifact_keys and not artifact_ids:
+    if (ev.artifact_keys or ev.geometry_artifact_key) and not artifact_ids:
         raise ValueError("evidence references artifacts but none were provided")
+    geometry_artifact = artifact_ids[ev.geometry_artifact_key] if (ev.geometry_artifact_key and artifact_ids) else None
     period = f"[{ev.observed_period_a[0]},{ev.observed_period_a[1]}]" if ev.observed_period_a else None
+    period_b = f"[{ev.observed_period_b[0]},{ev.observed_period_b[1]}]" if ev.observed_period_b else None
     conn.execute(
         text(
             """INSERT INTO evidence (evidence_id, schema_version, project_id, analysis_run_id, processing_run_id, kind,
-             geom, observed_period_a, facts, confidence_band, limitations, artifact_ids, content_sha256)
+             geom, geometry_artifact_id, observed_period_a, observed_period_b, facts, confidence_band, limitations,
+             artifact_ids, content_sha256)
            VALUES (:id, :sv, :p, :a, :pr, :k,
              CASE WHEN CAST(:g AS text) IS NULL THEN NULL ELSE ST_SetSRID(ST_GeomFromGeoJSON(CAST(:g AS text)), 4326) END,
-             CAST(:pa AS daterange), CAST(:f AS jsonb), 'n/a', CAST(:l AS jsonb), CAST(:art AS uuid[]), :h)"""
+             :gart, CAST(:pa AS daterange), CAST(:pb AS daterange), CAST(:f AS jsonb), :band, CAST(:l AS jsonb),
+             CAST(:art AS uuid[]), :h)"""
         ),
         {
             "id": ev.evidence_id,
@@ -331,7 +335,10 @@ def insert_evidence(
             "pr": processing_run_id,
             "k": ev.kind,
             "g": _j(ev.geometry) if ev.geometry else None,
+            "gart": geometry_artifact,
             "pa": period,
+            "pb": period_b,
+            "band": ev.confidence_band,
             "f": _j(ev.facts),
             "l": _j([{"code": c, "blocking": _blocking(c)} for c in ev.limitations]),
             "art": [str(i) for i in ids],
@@ -344,8 +351,8 @@ def insert_evidence(
             text(
                 """INSERT INTO measurements (measurement_id, evidence_id, quantity, statistic, status, value,
                  unavailable_reason, unit, denominator_quantity, denominator_measurement_id, n_samples, region,
-                 method, parameters_hash, processing_run_id)
-               VALUES (:id, :ev, :q, :st, :status, :v, :r, :u, :dq, :dm, :n, :reg, :meth, :ph, :pr)"""
+                 geometry_evidence_id, method, parameters_hash, processing_run_id)
+               VALUES (:id, :ev, :q, :st, :status, :v, :r, :u, :dq, :dm, :n, :reg, :gev, :meth, :ph, :pr)"""
             ),
             {
                 "id": m.measurement_id,
@@ -360,12 +367,27 @@ def insert_evidence(
                 "dm": by_q.get(m.denominator) if m.denominator else None,
                 "n": m.n_samples,
                 "reg": m.region,
+                # C7 §4: an event measurement's spatial support is its own change_event geometry.
+                "gev": ev.evidence_id if m.region == "event" else None,
                 "meth": m.method,
                 "ph": parameters_hash,
                 "pr": processing_run_id,
             },
         )
     return ev.evidence_id
+
+
+def insert_change_event(
+    conn: Connection, *, analysis_run_id: uuid.UUID, evidence_id: str, category: str, touches_aoi_boundary: bool
+) -> uuid.UUID:
+    """One ``change_events`` row per change_event evidence (migration 0002; no numeric/geometry columns)."""
+    return conn.execute(
+        text(
+            """INSERT INTO change_events (analysis_run_id, evidence_id, category, touches_aoi_boundary)
+           VALUES (:r, :e, :c, :t) RETURNING id"""
+        ),
+        {"r": analysis_run_id, "e": evidence_id, "c": category, "t": touches_aoi_boundary},
+    ).scalar_one()
 
 
 def _blocking(code: str) -> bool:
