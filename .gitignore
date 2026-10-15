@@ -33,6 +33,7 @@ out/
 Thumbs.db
 
 # Local data / generated artifacts
+.data/
 data/raw/
 data/cache/
 data/processed/
