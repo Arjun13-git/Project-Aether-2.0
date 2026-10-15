@@ -234,6 +234,13 @@ ROBUST_MAD_SCALE: Final = 1.4826  # C5 §4: MAD → σ for a normal distribution
 WIDESPREAD_Z: Final = Parameter("widespread_z", 2.0, Calibration.UNTUNED, "C5 §4 mode selection")
 WIDESPREAD_FRAC: Final = Parameter("widespread_frac", 0.30, Calibration.UNTUNED, "C5 §4 mode selection")
 
+# C5 §8 confidence-band cut-offs: rule-based data-quality indicators, never probabilities (UNTUNED).
+BAND_HIGHER_MIN_STRENGTH: Final = Parameter("band_higher_min_strength", 5.0, Calibration.UNTUNED, "C5 §8")
+BAND_HIGHER_MIN_SUPPORT: Final = Parameter("band_higher_min_support", 6, Calibration.UNTUNED, "C5 §8")
+BAND_HIGHER_MAX_COREG_RESIDUAL_PX: Final = Parameter("band_higher_max_coreg_residual_px", 0.3, Calibration.UNTUNED, "C5 §8")
+BAND_MODERATE_MIN_STRENGTH: Final = Parameter("band_moderate_min_strength", 3.5, Calibration.UNTUNED, "C5 §8")
+BAND_MODERATE_MIN_SUPPORT: Final = Parameter("band_moderate_min_support", 4, Calibration.UNTUNED, "C5 §8")
+
 
 def snapshot_parameters() -> dict[str, object]:
     """Canonical parameter set of a Phase 1 snapshot run (part of the idempotency key)."""
@@ -244,6 +251,31 @@ def snapshot_parameters() -> dict[str, object]:
         "indices": sorted(INDICES),
         "stats_min_support_fraction": STATS_MIN_SUPPORT.value,
         "coverage_thresholds": [COVERAGE_INSUFFICIENT_BELOW.value, COVERAGE_PARTIAL_BELOW.value],
+    }
+
+
+def change_parameters() -> dict[str, object]:
+    """Canonical parameter set of a Phase 2 change run (implementation plan §10; C-09: frozen, no overrides).
+
+    Snapshot parameters + C5 §9 defaults + C5 §8 band cut-offs + C3 §9 co-registration constants.
+    Part of the change idempotency key; never part of the snapshot key.
+    """
+    return {
+        **snapshot_parameters(),
+        CHANGE_K.name: CHANGE_K.value,
+        **{p.name: p.value for p in CHANGE_ABS_THRESHOLDS.values()},
+        CHANGE_MMU_M2.name: CHANGE_MMU_M2.value,
+        WIDESPREAD_Z.name: WIDESPREAD_Z.value,
+        WIDESPREAD_FRAC.name: WIDESPREAD_FRAC.value,
+        BAND_HIGHER_MIN_STRENGTH.name: BAND_HIGHER_MIN_STRENGTH.value,
+        BAND_HIGHER_MIN_SUPPORT.name: BAND_HIGHER_MIN_SUPPORT.value,
+        BAND_HIGHER_MAX_COREG_RESIDUAL_PX.name: BAND_HIGHER_MAX_COREG_RESIDUAL_PX.value,
+        BAND_MODERATE_MIN_STRENGTH.name: BAND_MODERATE_MIN_STRENGTH.value,
+        BAND_MODERATE_MIN_SUPPORT.name: BAND_MODERATE_MIN_SUPPORT.value,
+        COREG_MAX_RESIDUAL_PX.name: COREG_MAX_RESIDUAL_PX.value,
+        "coreg_min_window_px": COREG_MIN_WINDOW_PX,
+        "coreg_min_grid_fraction": COREG_MIN_GRID_FRACTION,
+        "upsample_factor": COREG_UPSAMPLE_FACTOR,
     }
 
 

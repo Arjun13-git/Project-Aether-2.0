@@ -19,6 +19,8 @@ from aether.domain.errors import InvariantViolation
 
 class _Step(BaseModel):
     model_config = ConfigDict(extra="allow")
+    # C-16: optional period tag of per-period steps in change runs; absent on Phase 1 records.
+    period: Literal["a", "b"] | None = None
 
 
 class SourceRead(_Step):
@@ -105,6 +107,61 @@ class DisplayComposite(_Step):
     artifact_sha256: str
 
 
+class QaCompositeStep(_Step):
+    """NIR QA composite (C4 §3): sole co-registration input; never a measurement; never filled."""
+
+    kind: Literal["qa_composite"]
+    version: str
+    purpose: Literal["coregistration_qa"]
+    band: Literal["nir"]
+    statistic: Literal["median"]
+    n_min: int
+    observation_ids: list[str]
+    filled: Literal[False]
+
+
+class Coregistration(_Step):
+    """C3 §9 shift check (scalars only; the estimator fill never leaves the estimator, C-01)."""
+
+    kind: Literal["coregistration"]
+    version: str
+    method: str
+    upsample_factor: int
+    status: Literal["ok", "failed", "not_assessable"]
+    joint_valid_px: int
+    grid_px: int
+
+
+class ChangeRules(_Step):
+    kind: Literal["change_rules"]
+    version: str
+    mode: Literal["robust", "absolute_only"]
+    parameters: dict[str, Any]
+    category_px: dict[str, int]
+
+
+class Morphology(_Step):
+    kind: Literal["morphology"]
+    version: str
+    structuring_element: Literal["square_3x3"]
+    sequence: list[str]
+    connectivity: Literal[8]
+    mmu_m2: float
+    mmu_min_px: int
+    per_category: dict[str, dict[str, int]]
+
+
+class Polygonization(_Step):
+    kind: Literal["polygonization"]
+    method: str
+    connectivity: Literal[8]
+    geometry: Literal["pixel_edges"]
+    simplification: None
+    validity_rule: str
+    events: int
+    repair_count: int
+
+
 class Statistics(_Step):
     kind: Literal["statistics"]
     method: str
@@ -136,6 +193,11 @@ Step = (
     | Index
     | Compositing
     | DisplayComposite
+    | QaCompositeStep
+    | Coregistration
+    | ChangeRules
+    | Morphology
+    | Polygonization
     | Statistics
     | AoiNormalization
     | CatalogSearch

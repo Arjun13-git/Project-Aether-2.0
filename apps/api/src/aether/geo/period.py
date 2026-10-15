@@ -6,7 +6,9 @@ change runs share exactly one implementation of: window read → radiometric nor
 composite. Coverage, outcomes and statistics are the caller's responsibility.
 
 This module is a verbatim extraction: snapshot outputs are byte-identical to Phase 1 (pinned by
-tests/unit/test_phase1_identity.py and scripts/repro_check.py).
+tests/unit/test_phase1_identity.py and scripts/repro_check.py). Change runs (Phase 2) call the same
+function with ``period`` ("a"/"b", tagged on every step, C-16) and ``qa_composite=True`` (the unfilled
+NIR QA composite, C4 §3). Both are off by default, so the snapshot call path is unchanged.
 """
 
 from __future__ import annotations
@@ -17,7 +19,7 @@ from collections import defaultdict
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Literal
 
 import numpy as np
 
@@ -26,9 +28,11 @@ from aether.geo import masks, resample
 from aether.geo.composite import (
     DisplayComposite,
     IndexComposite,
+    QaComposite,
     compositing_step,
     display_rgb_composite,
     median_index_composite,
+    nir_qa_composite,
 )
 from aether.geo.grid import AnalysisGrid, GridArray, in_aoi_mask
 from aether.geo.indices import IndexObservation, Reflectance, compute_index, index_step
@@ -57,6 +61,7 @@ class PeriodResult:
     aoi_pixel_observations: int
     steps: list[dict[str, Any]]
     timings_s: dict[str, float] = field(default_factory=dict)
+    qa: QaComposite | None = None  # NIR QA composite (change runs only; unfilled)
 
 
 class Cancelled(Exception):
@@ -130,8 +135,14 @@ def run_period(
     n_min: int = int(science.N_MIN.value),
     progress: ProgressFn | None = None,
     cancelled: CancelFn | None = None,
+    period: Literal["a", "b"] | None = None,
+    qa_composite: bool = False,
 ) -> PeriodResult:
-    """Process one period. ``scenes`` must already carry eligibility (C1 §5)."""
+    """Process one period. ``scenes`` must already carry eligibility (C1 §5).
+
+    ``period`` tags every provenance step (C-16); ``qa_composite`` also builds the NIR QA composite
+    (co-registration input only). Snapshot runs pass neither.
+    """
     timings: dict[str, float] = defaultdict(float)
     steps: list[dict[str, Any]] = []
     progress = progress or (lambda stage, frac: None)
@@ -152,6 +163,8 @@ def run_period(
     per_index: dict[str, list[IndexObservation]] = defaultdict(list)
     rgb_inputs: list[tuple[Reflectance, Reflectance, Reflectance]] = []
     rgb_quality: list[GridArray] = []
+    qa_nir: list[Reflectance] = []
+    qa_quality: list[GridArray] = []
     used: list[str] = []
     usable: list[str] = []
     reason_px: dict[str, int] = dict.fromkeys(masks.REASON_NAMES, 0)
@@ -277,6 +290,9 @@ def run_period(
                 steps.append(index_step(spec, obs.datatake_id, io.undefined_counts))
             rgb_inputs.append((r("red", refl["red"]), r("green", refl["green"]), r("blue", refl["blue"])))
             rgb_quality.append(q10)
+            if qa_composite:
+                qa_nir.append(r("nir", refl["nir"]))
+                qa_quality.append(q10)
             used.append(obs.datatake_id)
             if (per_index["ndvi"][-1].array.valid & in_aoi10).any():
                 usable.append(obs.datatake_id)
@@ -296,7 +312,12 @@ def run_period(
             composites[name] = c
             steps.append(compositing_step(c))
     display = display_rgb_composite(rgb_inputs, rgb_quality) if rgb_inputs else None
+    qa = nir_qa_composite(qa_nir, qa_quality, n_min) if qa_nir else None
+    if qa is not None:
+        steps.append(qa_composite_step(qa))
     timings["composite"] += time.perf_counter() - t0
+    if period is not None:
+        steps = [{**s, "period": period} for s in steps]
 
     return PeriodResult(
         in_aoi10=in_aoi10,
@@ -310,4 +331,20 @@ def run_period(
         aoi_pixel_observations=aoi_px_obs,
         steps=steps,
         timings_s=dict(timings),
+        qa=qa,
     )
+
+
+def qa_composite_step(qa: QaComposite) -> dict[str, Any]:
+    """Provenance step ``qa_composite`` (C4 §3, C-16): co-registration input only, never a measurement."""
+    return {
+        "kind": "qa_composite",
+        "version": science.COMPOSITE_VERSION,
+        "purpose": qa.purpose,
+        "band": qa.band,
+        "statistic": "median",
+        "n_min": qa.n_min,
+        "observation_ids": list(qa.observation_ids),
+        "sufficient_px": int(qa.array.valid.sum()),
+        "filled": False,
+    }
