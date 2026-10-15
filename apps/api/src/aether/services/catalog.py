@@ -82,6 +82,7 @@ def search_and_record(
         ],
         timings={},
         started_at=started,
+        algorithm_versions=science.SNAPSHOT_ALGORITHM_VERSIONS,
     )
     search_id = repo.insert_scene_search(
         conn,

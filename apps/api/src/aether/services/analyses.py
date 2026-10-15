@@ -51,7 +51,7 @@ def idempotency_key(aoi: dict[str, Any], analysis_type: str, period: Period, par
             "period_a": period.as_tuple(),
             "collection": science.STAC_COLLECTION,
             "parameters": params,
-            "algorithm_versions": science.ALGORITHM_VERSIONS,
+            "algorithm_versions": science.SNAPSHOT_ALGORITHM_VERSIONS,
         }
     )
 
@@ -147,7 +147,7 @@ def submit(
             "c": science.STAC_COLLECTION,
             "par": _json(params),
             "ph": canonical_hash(params),
-            "av": _json(science.ALGORITHM_VERSIONS),
+            "av": _json(science.SNAPSHOT_ALGORITHM_VERSIONS),
             "gh": grid.grid_hash,
             "k": key,
         },

@@ -232,7 +232,9 @@ def insert_processing_run(
     steps: list[dict[str, Any]],
     timings: dict[str, float],
     started_at: datetime,
+    algorithm_versions: dict[str, str],
 ) -> uuid.UUID:
+    """Insert a processing run. ``algorithm_versions`` is explicit per run type (snapshot vs change, C-10)."""
     validate_steps(steps)
     return conn.execute(
         text(
@@ -245,7 +247,7 @@ def insert_processing_run(
             "p": project_id,
             "a": analysis_run_id,
             "k": kind,
-            "av": _j(science.ALGORITHM_VERSIONS),
+            "av": _j(algorithm_versions),
             "par": _j(parameters),
             "ph": parameters_hash,
             "gh": grid_hash,

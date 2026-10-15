@@ -344,6 +344,7 @@ def _persist(
             steps=steps,
             timings={k: round(v, 3) for k, v in result.timings_s.items()},
             started_at=started,
+            algorithm_versions=science.SNAPSHOT_ALGORITHM_VERSIONS,
         )
         for s in result.scenes:
             sid, _ = repo.upsert_scene(conn, s)

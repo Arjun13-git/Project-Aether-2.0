@@ -25,7 +25,14 @@ GEODESIC_AREA_METHOD: Final = "geodesic_area@1"  # C3 §1
 PIXEL_AREA_METHOD: Final = "pixel_area@1"  # C3 §7
 EVIDENCE_SCHEMA_VERSION: Final = "evidence.v1"  # C7
 
-ALGORITHM_VERSIONS: Final[dict[str, str]] = {
+# Phase 2 versions (C5, C3 §9). Used only by change runs; never part of the snapshot map.
+CHANGE_VERSION: Final = "change.index_diff.v1"  # C5
+COREG_VERSION: Final = "coreg.phase_corr.v1"  # C3 §9
+VECTOR_WRITER_ID: Final = "vector.gpkg.det1"  # implementation id of the deterministic GeoPackage writer (G1)
+
+# Snapshot runs (Phase 1). Frozen: entries, values and order are part of the snapshot idempotency key
+# and of stored provenance (JOB-SYSTEM, Phase 2 freeze C-10). Never add Phase 2 entries here.
+SNAPSHOT_ALGORITHM_VERSIONS: Final[dict[str, str]] = {
     "ingest": INGEST_VERSION,
     "radiometry": RADIOMETRY_VERSION,
     "grid": GRID_VERSION,
@@ -34,6 +41,17 @@ ALGORITHM_VERSIONS: Final[dict[str, str]] = {
     "indices": INDICES_VERSION,
     "coverage": COVERAGE_VERSION,
     "zonal_stats": ZONAL_STATS_METHOD,
+}
+
+# Backwards-compatible alias: Phase 1 callers and stored records use this name for the snapshot map.
+ALGORITHM_VERSIONS: Final[dict[str, str]] = SNAPSHOT_ALGORITHM_VERSIONS
+
+# Change runs (Phase 2): the snapshot map plus the change-specific versions. For future change runs only.
+CHANGE_ALGORITHM_VERSIONS: Final[dict[str, str]] = {
+    **SNAPSHOT_ALGORITHM_VERSIONS,
+    "change": CHANGE_VERSION,
+    "coreg": COREG_VERSION,
+    "vector": VECTOR_WRITER_ID,
 }
 
 

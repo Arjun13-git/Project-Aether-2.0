@@ -62,6 +62,7 @@ def create_aoi(conn: Connection, *, project_id: uuid.UUID, name: str, geometry: 
         ],
         timings={},
         started_at=started,
+        algorithm_versions=science.SNAPSHOT_ALGORITHM_VERSIONS,
     )
     ev = EvidenceDraft(
         kind="aoi_measurement",

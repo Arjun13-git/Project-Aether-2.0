@@ -51,7 +51,7 @@ ERR: dict[int | str, dict[str, Any]] = {422: {"model": S.ErrorResponse}, 404: {"
 def health() -> dict[str, Any]:
     return {
         "status": "ok",
-        "algorithm_versions": science.ALGORITHM_VERSIONS,
+        "algorithm_versions": science.SNAPSHOT_ALGORITHM_VERSIONS,
         "phase": 1,
         "capabilities": ["aoi", "catalog_search", "snapshot_analysis", "evidence", "tiles"],
         "not_available": ["change_analysis", "analyst", "reports"],
