@@ -1,15 +1,16 @@
-"""The complete list of analysis resampling operations for Phase 1 (C3 §6, I-5).
+"""The complete list of analysis resampling operations (C3 §6, I-5).
 
 Only exact operations exist. G20 nests G10 exactly (one G20 cell = a 2 × 2 G10 block), so:
 - R1: categorical G20 → G10 by nearest (block replication);
 - R2: continuous reflectance G10 → G20 by 2 × 2 block mean, invalid unless all 4 cells valid.
-R3 (20 m index deltas → G10) belongs to change detection (Phase 2) and is not implemented here.
+- R3: 20 m index deltas / validity G20 → G10 by nearest (block replication), for the joint
+  change rules on G10 (C5 §3; Phase 2).
 Reprojection between CRSs does not exist in MVP analysis.
 """
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Literal
 
 import numpy as np
 
@@ -61,3 +62,20 @@ def r2_block_mean_10_to_20(src: GridArray, g20: Grid) -> tuple[GridArray, dict[s
         "target_grid": g20.name,
     }
     return GridArray(g20, mean, ok), step
+
+
+def r3_nearest_20_to_10(
+    src: GridArray, g10: Grid, data_class: Literal["continuous", "boolean"]
+) -> tuple[GridArray, dict[str, Any]]:
+    """R3: 20 m index deltas (continuous) or validity (boolean) G20 → G10 by exact block replication."""
+    _check_nesting(g10, src.grid)
+    data = np.repeat(np.repeat(src.data, 2, axis=0), 2, axis=1)
+    valid = np.repeat(np.repeat(src.valid, 2, axis=0), 2, axis=1)
+    step = {
+        "rule": "R3",
+        "data_class": data_class,
+        "method": "nearest",
+        "source_grid": src.grid.name,
+        "target_grid": g10.name,
+    }
+    return GridArray(g10, data, valid), step

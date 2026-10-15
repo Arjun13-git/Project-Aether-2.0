@@ -66,7 +66,7 @@ class Masking(_Step):
 
 class Resampling(_Step):
     kind: Literal["resampling"]
-    rule: Literal["R1", "R2"]
+    rule: Literal["R1", "R2", "R3"]
     data_class: str
     method: str
     source_grid: str

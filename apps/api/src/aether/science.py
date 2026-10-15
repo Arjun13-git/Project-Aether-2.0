@@ -212,6 +212,29 @@ COVERAGE_INSUFFICIENT_BELOW: Final = Parameter("coverage_insufficient_below", 0.
 COVERAGE_PARTIAL_BELOW: Final = Parameter("coverage_partial_below", 0.8, Calibration.UNTUNED, "C6 §5 policy default")
 
 
+# --- C3 §9: co-registration check (coreg.phase_corr.v1; Phase 2) --------------------------------
+
+COREG_MIN_GRID_FRACTION: Final = 0.5  # jointly valid fraction of the whole G10 grid (C-03: grid-level)
+COREG_MIN_WINDOW_PX: Final = 256  # bounding window of jointly valid pixels, per axis
+COREG_UPSAMPLE_FACTOR: Final = 10
+COREG_MAX_RESIDUAL_PX: Final = Parameter("coreg_max_residual_px", 0.5, Calibration.UNTUNED, "C3 §9 abort gate")
+
+# --- C5: change.index_diff.v1 (Phase 2). Frozen defaults; no overrides in Phase 2.0 (C-09) --------
+
+CHANGE_INDICES: Final = ("ndvi", "mndwi", "ndbi")  # C5 §1; NDWI is statistics-only (C-06)
+CHANGE_K: Final = Parameter("k", 3.0, Calibration.UNTUNED, "C5 §9 initial default")
+CHANGE_ABS_THRESHOLDS: Final[dict[str, Parameter]] = {
+    "ndvi": Parameter("a_NDVI", 0.15, Calibration.UNTUNED, "C5 §9 initial default"),
+    "mndwi": Parameter("a_MNDWI", 0.20, Calibration.UNTUNED, "C5 §9 initial default"),
+    "ndbi": Parameter("a_NDBI", 0.10, Calibration.UNTUNED, "C5 §9 initial default"),
+}
+CHANGE_MMU_M2: Final = Parameter("mmu_m2", 5000, Calibration.PRODUCT_CHOICE, "C5 §9 product default (0.5 ha)")
+ROBUST_MIN_ELIGIBLE_PX: Final = Parameter("robust_min_eligible_px", 1000, Calibration.UNTUNED, "C5 §4 mode selection")
+ROBUST_MAD_SCALE: Final = 1.4826  # C5 §4: MAD → σ for a normal distribution
+WIDESPREAD_Z: Final = Parameter("widespread_z", 2.0, Calibration.UNTUNED, "C5 §4 mode selection")
+WIDESPREAD_FRAC: Final = Parameter("widespread_frac", 0.30, Calibration.UNTUNED, "C5 §4 mode selection")
+
+
 def snapshot_parameters() -> dict[str, object]:
     """Canonical parameter set of a Phase 1 snapshot run (part of the idempotency key)."""
     return {

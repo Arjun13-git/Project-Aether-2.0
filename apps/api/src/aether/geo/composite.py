@@ -5,8 +5,8 @@ NOT USED:     reflectance_obs → per-band median → index of the medians
 
 The measured composite accepts only :class:`IndexObservation` objects, which can only be produced
 by :func:`aether.geo.indices.compute_index` from two reflectances of the **same** observation.
-Per-band reflectance medians are a different type (:class:`DisplayComposite`) that no
-measurement function accepts.
+Per-band reflectance medians are different types (:class:`DisplayComposite`, :class:`QaComposite`)
+that no measurement function accepts.
 """
 
 from __future__ import annotations
@@ -40,6 +40,21 @@ class DisplayComposite:
     purpose: str  # "display_rgb"
     bands: tuple[str, ...]
     arrays: tuple[GridArray, ...]
+
+
+@dataclass(frozen=True)
+class QaComposite:
+    """Per-band NIR reflectance median. CO-REGISTRATION QA ONLY — never a measurement input (C4 §3).
+
+    ``array.valid`` = ``n_valid_nir ≥ n_min``; insufficient pixels are NaN and never filled.
+    """
+
+    purpose: str  # "coregistration_qa"
+    band: str  # "nir"
+    array: GridArray
+    n_valid: np.ndarray  # uint8
+    n_min: int
+    observation_ids: tuple[str, ...]
 
 
 def median_index_composite(observations: Sequence[IndexObservation], n_min: int) -> IndexComposite:
@@ -98,6 +113,31 @@ def display_rgb_composite(
             med[has] = np.nanmedian(stack[:, has], axis=0)
         out.append(GridArray(grid, med, has))
     return DisplayComposite("display_rgb", ("red", "green", "blue"), tuple(out))
+
+
+def nir_qa_composite(observations: Sequence[Reflectance], quality: Sequence[GridArray], n_min: int) -> QaComposite:
+    """C4 §3 NIR QA composite: per-pixel median of ``nir`` over valid observations (reflectance and SCL)."""
+    if not observations:
+        raise InvariantViolation("composite_empty", "no observations to composite")
+    if len(observations) > 255:
+        raise InvariantViolation("composite_too_many_observations", "n_valid is stored as uint8")
+    ids = [r.observation_id for r in observations]
+    if len(set(ids)) != len(ids):
+        raise InvariantViolation("composite_duplicate_observation", "an observation appears twice")
+    for r in observations:
+        if not isinstance(r, Reflectance) or r.asset_key != "nir":
+            raise InvariantViolation("qa_composite_input", "the QA composite accepts nir reflectance only")
+    grid = require_same_grid(*(r.array for r in observations), *quality)
+    if grid.name != "G10":
+        raise InvariantViolation("qa_composite_grid", f"the NIR QA composite is defined on G10, got {grid.name}")
+    ok = [r.array.valid & q.valid for r, q in zip(observations, quality, strict=True)]
+    stack = np.stack([np.where(v, r.array.data, np.nan) for r, v in zip(observations, ok, strict=True)])
+    n_valid = np.stack(ok).sum(axis=0).astype(np.uint8)
+    sufficient = n_valid >= n_min
+    med = np.full(grid.shape, np.nan, dtype=np.float32)
+    if sufficient.any():
+        med[sufficient] = np.nanmedian(stack[:, sufficient], axis=0).astype(np.float32)
+    return QaComposite("coregistration_qa", "nir", GridArray(grid, med, sufficient), n_valid, n_min, tuple(sorted(ids)))
 
 
 def compositing_step(c: IndexComposite) -> dict[str, object]:
