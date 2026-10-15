@@ -23,6 +23,27 @@ This repository starts from zero. The original Aether 1.x codebase is intentiona
 
 `System-Design/` contains the local engineering blueprint and is gitignored.
 
-## First milestone
+## Status: Phase 1 (EO data foundation)
 
-Phase 1 proves the geospatial foundation before adding advanced ML or the AI analyst.
+Phase 1 is an **evidence-first Earth-observation snapshot workbench**. For an AOI and one period it:
+- discovers Sentinel-2 L2A scenes (Earth Search, `sentinel-2-c1-l2a`);
+- applies deterministic radiometry, SCL cloud masking and per-observation indices (NDVI, NDWI, MNDWI, NDBI);
+- builds median composites;
+- reports coverage and index statistics as traceable Measurements with full provenance;
+- shows the results on a map.
+
+Phase 1 does **not** perform change detection, run an AI analyst, generate reports or use any ML model.
+
+- Setup: [`docs/LOCAL-DEV.md`](docs/LOCAL-DEV.md)
+- Architecture and scientific pipeline: [`docs/phase-1/ARCHITECTURE.md`](docs/phase-1/ARCHITECTURE.md)
+- API: [`docs/phase-1/API.md`](docs/phase-1/API.md)
+- Known limitations: [`docs/phase-1/KNOWN-LIMITATIONS.md`](docs/phase-1/KNOWN-LIMITATIONS.md)
+
+```text
+apps/api   Python 3.13 · FastAPI · PostGIS · rasterio/GDAL (API, worker, geo engine)
+apps/web   Next.js · MapLibre (UI only)
+infra      PostGIS via Docker Compose
+scripts    demo, fixture fetch, licence report
+```
+
+Imagery attribution: Contains modified Copernicus Sentinel data. Basemap: OpenFreeMap © OpenMapTiles, data from OpenStreetMap.
