@@ -1,0 +1,61 @@
+{
+ "source": {
+  "provider": "Element 84 Earth Search",
+  "stac_api": "https://earth-search.aws.element84.com/v1",
+  "collection": "sentinel-2-c1-l2a"
+ },
+ "item_id": "S2B_T10SEH_20240617T190041_L2A",
+ "asset_key": "red",
+ "href": "https://e84-earth-search-sentinel-data.s3.us-west-2.amazonaws.com/sentinel-2-c1-l2a/10/S/EH/2024/6/S2B_T10SEH_20240617T190041_L2A/B04.tif",
+ "file_checksum": "122036ac33fbd42abcf32c1267ed0e28a543c58d1c52682c9384c6da5e082d0dc55c",
+ "processing_baseline": "05.10",
+ "acquired_at": "2024-06-17T19:03:57.542000Z",
+ "mgrs_tile": "MGRS-10SEH",
+ "window": {
+  "epsg": 32610,
+  "transform": [
+   10.0,
+   0.0,
+   605560.0,
+   0.0,
+   -10.0,
+   4265980.0
+  ],
+  "col_off": 10558,
+  "row_off": 3404,
+  "width": 64,
+  "height": 64
+ },
+ "source_header": {
+  "scales": [
+   0.0001
+  ],
+  "offsets": [
+   -0.1
+  ],
+  "nodata": 0.0,
+  "dtype": "uint16",
+  "tags": {
+   "STATISTICS_MAXIMUM": "17504",
+   "STATISTICS_MEAN": "2203.3501829137",
+   "STATISTICS_MINIMUM": "597",
+   "STATISTICS_STDDEV": "748.51201786857",
+   "STATISTICS_VALID_PERCENT": "99.999"
+  }
+ },
+ "stac_raster_bands": [
+  {
+   "nodata": 0,
+   "data_type": "uint16",
+   "spatial_resolution": 10,
+   "scale": 0.0001,
+   "offset": -0.1
+  }
+ ],
+ "retrieved_at": "2026-10-13T06:28:58+00:00",
+ "retrieval_script": "scripts/fixtures/fetch_s2_window.py",
+ "licence": "Copernicus Sentinel Data Legal Notice (https://sentinels.copernicus.eu/documents/247904/690755/Sentinel_Data_Legal_Notice)",
+ "attribution": "Contains modified Copernicus Sentinel data 2024",
+ "purpose": "Real COG header vs STAC radiometric metadata cross-check (C2 \u00a73, C1 \u00a77, V-C1-2)",
+ "modifications": "windowed and recompressed (DEFLATE); pixel values unchanged"
+}
