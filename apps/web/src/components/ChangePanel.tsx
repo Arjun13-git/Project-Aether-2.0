@@ -138,7 +138,7 @@ export default function ChangePanel(p: Props) {
       {selectedEvents.map((f) => <EventInspector key={String(f.id)} feature={f} />)}
 
       {summary && <EvidencePanel key={summary.evidence_id} evidenceId={summary.evidence_id} title="Change summary (fractions of the compared area)" />}
-      {coreg && <EvidencePanel key={coreg.evidence_id} evidenceId={coreg.evidence_id} title="Co-registration check (residual gates; error and σ are observational)" />}
+      {coreg && <EvidencePanel key={coreg.evidence_id} evidenceId={coreg.evidence_id} title="Co-registration check (the residual gates; raw PCC error and NIR σ are diagnostics only)" />}
       {coverage && <EvidencePanel key={coverage.evidence_id} evidenceId={coverage.evidence_id} title="Coverage, Period A and Period B (denominators named)" />}
       {detail.evidence.some((e) => e.period === "delta") && (
         <section className="space-y-1">

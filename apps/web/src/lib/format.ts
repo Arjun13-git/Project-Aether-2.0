@@ -79,7 +79,7 @@ export const LABELS: Record<string, string> = {
   coreg_residual: "Co-registration residual",
   coreg_shift_x: "Co-registration shift x (columns)",
   coreg_shift_y: "Co-registration shift y (rows)",
-  coreg_pcc_error: "Phase-correlation error (observational)",
+  coreg_pcc_error: "Phase-correlation error (raw diagnostic; not a quality or confidence score)",
   coreg_window_width: "Registration window width",
   coreg_window_height: "Registration window height",
   coreg_grid_joint_valid_fraction: "Registration support (grid)",

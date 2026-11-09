@@ -11,6 +11,10 @@ Inputs are the unfilled NIR QA composites of periods A and B (C4 §3) on the ide
   type holds scalars only, so filled values cannot reach any measurement, statistic or geometry.
 - Gate: ``residual_px = hypot(dy, dx)``; > 0.5 px → ``coregistration_failed``. The phase-correlation
   error and the NIR-QA σ inside the window are observational, non-gating metrics (C-02).
+- ``pcc_error`` is skimage's raw ``error``, recorded unchanged (C-02 interpretation, 2026-11-09). With the
+  default ``normalization="phase"`` it compares a phase-normalised peak with raw image energies, so it is
+  ≈ 1.0 for reflectance-scale inputs whether or not they are aligned: a raw diagnostic, not a normalised
+  registration-quality or confidence score. It gates nothing and never enters a confidence band.
 """
 
 from __future__ import annotations
@@ -58,7 +62,7 @@ class CoregResult:
     shift_dy_px: float | None = None
     shift_dx_px: float | None = None
     residual_px: float | None = None
-    pcc_error: float | None = None  # observational (C-02)
+    pcc_error: float | None = None  # raw skimage error; diagnostic only, not a quality/confidence score (C-02)
     nir_qa_std_a: float | None = None  # observational (C-02): unfilled jointly valid window pixels
     nir_qa_std_b: float | None = None
     upsample_factor: int = science.COREG_UPSAMPLE_FACTOR

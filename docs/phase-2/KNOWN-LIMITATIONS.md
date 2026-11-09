@@ -12,12 +12,16 @@ These are stated on purpose. Where a limitation applies to a result, it is attac
 ## Co-registration
 - **Small AOIs cannot be verified.** Registration needs a 256 × 256 px window on the 10 m grid, so an AOI's projected extent must be ≥ 2,160 m on both axes to be always sufficient (> 2,120 m is necessary; C-15). Smaller AOIs still complete, but with the blocking `coregistration_not_verified` limitation, and every band is capped at `lower`. Preflight discloses this.
 - **Residual gate is untuned.** The gate is 0.5 px (`coregistration_failed` above it), and `higher` additionally needs ≤ 0.3 px. Detected misregistration aborts change detection; nothing is resampled or corrected.
-- **The recorded phase-correlation error is not informative.**
-  - `coreg_pcc_error` is the `error` returned by `skimage.registration.phase_cross_correlation` with its default `normalization="phase"` (scikit-image 0.26).
-  - With that setting, skimage divides a phase-normalised correlation peak by the raw (un-normalised) image energies. The value is therefore close to 1.0 for any reflectance-scale input: identical, shifted or unrelated images alike. It does not measure registration quality.
-  - It never gated anything (C-02: observational only). The live run recorded 1.000.
-  - The NIR QA standard deviations recorded alongside it are meaningful.
-  - Replacing or supplementing this metric is a contract decision (C-02 amendment, new `coreg` version) and is open.
+- **Raw PCC diagnostic (`coreg_pcc_error`).** C-02 interpretation, accepted 2026-11-09.
+  - It is the raw `error` returned by the frozen `skimage.registration.phase_cross_correlation(A, B, upsample_factor=10)` (scikit-image 0.26, default `normalization="phase"`), recorded unchanged for provenance and debugging.
+  - With that setting, skimage divides a phase-normalised correlation peak by the raw (un-normalised) image energies. The value is therefore close to 1.0 for any reflectance-scale input: identical, shifted or unrelated images alike. Both live runs recorded 1.000.
+  - It is **not** a normalised registration-quality score, a confidence score, a probability or a percentage. No threshold or gate applies to it, and it is not used for confidence bands, event confidence or registration pass/fail. It is not calibrated and says nothing about registration on its own.
+  - Replacing it with an informative diagnostic would be a new contract decision and a new `coreg` version.
+- **Current registration assessment** rests on the frozen, untuned diagnostics:
+  - the estimated shift (dy, dx) and the residual `hypot(dy, dx)`, with the 0.5 px gate (`coregistration_failed`) and the 0.3 px ceiling for `higher`;
+  - the registration support (grid jointly-valid fraction and the 256 × 256 px window);
+  - the NIR QA standard deviations in the window, recorded as observational texture context, not gated.
+- **Registration reliability is not calibrated.** Whether these diagnostics catch real misregistration (false aborts, false passes) is for the C-13 evaluation, together with research item R-2. No calibrated registration confidence exists.
 - **Low-texture scenes.** Phase correlation on near-uniform scenes can return arbitrary shifts. No texture gate exists (C-02); this is open research item R-2.
 
 ## Coverage and data

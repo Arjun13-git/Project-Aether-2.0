@@ -47,7 +47,7 @@ Limitations:
 - The scientific evaluation of change detection (evaluation data and labels, C-13) is **deferred**. No accuracy is claimed.
 - AOIs narrower than about 2.16 km on either UTM axis cannot have co-registration verified. Their events carry a blocking `coregistration_not_verified` limitation and a `lower` band.
 - The change-category display palette is provisional.
-- The recorded phase-correlation error (`coreg_pcc_error`) does not measure registration quality and gates nothing; see the Phase 2 limitations.
+- The phase-correlation error (`coreg_pcc_error`) is recorded raw as a diagnostic only. It is not a registration-quality or confidence score and gates nothing; registration reliability is not calibrated (C-13). See the Phase 2 limitations.
 
 The project does **not** run an AI analyst, generate reports or use any ML model.
 

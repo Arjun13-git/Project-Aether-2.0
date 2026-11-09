@@ -49,7 +49,7 @@ The system runs locally (single user, loopback only). It is not production-ready
   - coverage for A and B (named denominators);
   - per-period index statistics;
   - Δ statistics for NDVI/MNDWI/NDBI over `joint_valid` pixels (C-06);
-  - the co-registration check;
+  - the co-registration check: status, shift, residual, support window, NIR QA σ and the raw phase-correlation error. The raw error is a diagnostic only, not a quality or confidence score (see the limitations);
   - the change summary: changed area and fractions over `joint_valid_area`, per-category areas (unions; they may sum to more than the total where categories overlap), and event counts.
 - **Provenance** (`GET /evidence/{id}/provenance`): versions, processing steps per period, source scenes per period, and cited artifacts. Run inputs (`GET /analyses/{id}` → `inputs[]`) carry the period recorded for each item.
 

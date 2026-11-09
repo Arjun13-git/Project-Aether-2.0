@@ -279,6 +279,13 @@ test("sources are grouped by the period the API recorded, A then B, nothing drop
   assert.deepEqual(sourceGroups([]), []);
 });
 
+test("the raw phase-correlation error is labelled as a diagnostic, never a quality or confidence score (C-02)", () => {
+  const text = label("coreg_pcc_error", "value");
+  assert.match(text, /raw diagnostic/);
+  assert.match(text, /not a quality or confidence score/);
+  assert.doesNotMatch(text, /%|probabilit/i);
+});
+
 test("a fixture preflight is typed as ChangePreflight", () => {
   const typed: ChangePreflight = preflight;
   assert.equal(typed.periods.a.days, 45);
