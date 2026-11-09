@@ -1,4 +1,4 @@
-# Aether 2.0 CI (Phase 0/1). Not yet executed on a runner; mirrors docs/LOCAL-DEV.md.
+# Aether 2.0 CI (snapshot + change analysis). Not yet executed on a runner; mirrors docs/LOCAL-DEV.md.
 name: ci
 on: [push, pull_request]
 jobs:
@@ -31,4 +31,5 @@ jobs:
       - uses: actions/setup-node@v4
         with: {node-version: 26, cache: pnpm, cache-dependency-path: apps/web/pnpm-lock.yaml}
       - run: pnpm install --frozen-lockfile
+      - run: pnpm test
       - run: pnpm typecheck && pnpm lint && pnpm build
