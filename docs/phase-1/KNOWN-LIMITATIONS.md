@@ -1,5 +1,7 @@
 # Phase 1 — known limitations
 
+> **Phase 1 record.** Change analysis (`type: "change"`) has since been implemented and is no longer refused with `422 analysis_type_not_available`. See the README status section for current behaviour and limitations.
+
 These are preserved on purpose, not hidden. Where a limitation applies to a result, it is attached to that result's evidence as a limitation code.
 
 ## Scope (by design)

@@ -1,5 +1,7 @@
 # Phase 1 — architecture and scientific pipeline
 
+> **Phase 1 record.** Change analysis (`type: "change"`) has since been implemented and is no longer refused with `422 analysis_type_not_available`. See the README status section for current behaviour and limitations.
+
 Aether Phase 1 is an **evidence-first Earth-observation snapshot workbench**. For one AOI and one period it:
 1. discovers Sentinel-2 L2A scenes;
 2. processes them deterministically into per-period index composites;

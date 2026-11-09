@@ -23,21 +23,37 @@ This repository starts from zero. The original Aether 1.x codebase is intentiona
 
 `System-Design/` contains the local engineering blueprint and is gitignored.
 
-## Status: Phase 1 (EO data foundation)
+## Status: snapshot and two-period change analysis
 
-Phase 1 is an **evidence-first Earth-observation snapshot workbench**. For an AOI and one period it:
+**Snapshot analysis (Phase 1, frozen).** For an AOI and one period it:
 - discovers Sentinel-2 L2A scenes (Earth Search, `sentinel-2-c1-l2a`);
 - applies deterministic radiometry, SCL cloud masking and per-observation indices (NDVI, NDWI, MNDWI, NDBI);
 - builds median composites;
 - reports coverage and index statistics as traceable Measurements with full provenance;
 - shows the results on a map.
 
-Phase 1 does **not** perform change detection, run an AI analyst, generate reports or use any ML model.
+**Change analysis (`change.index_diff.v1`).** For an AOI and two season-matched periods A and B it:
+- runs the snapshot engine for each period inside one self-contained run;
+- measures AOI joint coverage and checks co-registration (phase correlation on NIR QA composites; residual gate 0.5 px);
+- computes Δ = B − A for NDVI, MNDWI and NDBI, classifies significant change, and extracts change events (8-connected, pixel-edge polygons, authoritative GeoPackage);
+- records per-event measurements, sign counts and a rule-based confidence band (`higher`/`moderate`/`lower`), with fractions over `joint_valid_area`;
+- reports a scientific outcome (`completed`, `insufficient_observations`, `insufficient_coverage`, `coregistration_failed`) distinct from infrastructure failure;
+- shows Period A/B layers, Δ layers, categories, the not-compared mask and inspectable events in the change workspace.
+
+Validation: synthetic change worlds cover every outcome in tests. One live Earth Search A/B run has been recorded (Davis CA demo AOI, 2023-06-01→08-15 vs 2024-06-01→08-15, outcome `completed`). `scripts/repro_check.py` checks snapshot runs only; there is no change-run reproducibility script yet.
+
+Limitations:
+- All change thresholds (`k`, `a_*`, MMU, confidence-band rules) are **untuned engineering defaults**, not calibrated values, and cannot be overridden through the API.
+- The scientific evaluation of change detection (evaluation data and labels, C-13) is **deferred**. No accuracy is claimed.
+- AOIs narrower than about 2.16 km on either UTM axis cannot have co-registration verified. Their events carry a blocking `coregistration_not_verified` limitation and a `lower` band.
+- The change-category display palette is provisional.
+
+The project does **not** run an AI analyst, generate reports or use any ML model.
 
 - Setup: [`docs/LOCAL-DEV.md`](docs/LOCAL-DEV.md)
-- Architecture and scientific pipeline: [`docs/phase-1/ARCHITECTURE.md`](docs/phase-1/ARCHITECTURE.md)
-- API: [`docs/phase-1/API.md`](docs/phase-1/API.md)
-- Known limitations: [`docs/phase-1/KNOWN-LIMITATIONS.md`](docs/phase-1/KNOWN-LIMITATIONS.md)
+- Phase 1 architecture and scientific pipeline: [`docs/phase-1/ARCHITECTURE.md`](docs/phase-1/ARCHITECTURE.md)
+- Phase 1 API (change endpoints: `POST /analyses` with `type: "change"`, `POST /analyses/preflight`, `GET /changes`; full schema at `/docs`): [`docs/phase-1/API.md`](docs/phase-1/API.md)
+- Phase 1 known limitations: [`docs/phase-1/KNOWN-LIMITATIONS.md`](docs/phase-1/KNOWN-LIMITATIONS.md)
 
 ```text
 apps/api   Python 3.13 · FastAPI · PostGIS · rasterio/GDAL (API, worker, geo engine)

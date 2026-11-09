@@ -1,5 +1,7 @@
 # Phase 1 API (`/api/v1`)
 
+> **Phase 1 record.** Change analysis (`type: "change"`) has since been implemented and is no longer refused with `422 analysis_type_not_available`. See the README status section for current behaviour and limitations.
+
 The full schema is at `http://127.0.0.1:8000/docs`. All errors use one body:
 
 ```json

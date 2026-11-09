@@ -1,4 +1,4 @@
-# Local development (Phase 1)
+# Local development
 
 Single-user, localhost only. There is no authentication; the API refuses to bind to a non-loopback address. No GPU is needed.
 
@@ -26,7 +26,7 @@ The database listens on loopback only. The PostGIS extension is created by the m
 cd apps/api
 cp .env.example .env            # use the password from infra/.env
 uv sync                         # Python 3.13 venv from uv.lock
-uv run alembic upgrade head     # Phase 1 schema (migrations/versions/0001_phase1_baseline.py)
+uv run alembic upgrade head     # schema: 0001_phase1_baseline + 0002_phase2_change
 uv run python -m aether.api.app       # API on http://127.0.0.1:8000  (OpenAPI: /docs)
 uv run python -m aether.jobs.worker   # worker (separate terminal)
 ```
@@ -60,7 +60,7 @@ cd apps/api
 uv run pytest                                   # unit tests (no DB, no network)
 AETHER_TEST_DATABASE_URL=… uv run pytest        # + integration tests against PostGIS
 uv run ruff check src tests && uv run ruff format --check src tests
-cd ../web && pnpm typecheck && pnpm lint
+cd ../web && pnpm typecheck && pnpm lint && pnpm test
 ```
 
 - `live`-marked tests are excluded by default.
@@ -74,7 +74,7 @@ cd ../web && pnpm typecheck && pnpm lint
 | `scripts/demo_phase1.py` | Runs the three civilian demo AOIs end to end through the API |
 | `scripts/fixtures/fetch_s2_window.py` | Fetches a ≤ 256 px real window + provenance sidecar into the fixture tree (ADR-023) |
 | `scripts/licence_report.py` | Licence tripwire over the installed Python and web dependencies |
-| `scripts/repro_check.py` | Re-executes persisted runs from their recorded STAC JSON and compares artifact sha256 and statistics (I-12) |
+| `scripts/repro_check.py` | Re-executes persisted **snapshot** runs from their recorded STAC JSON and compares artifact sha256 and statistics (I-12). Change runs are not selected; a change run named explicitly is reported as FAIL (not checked) |
 
 ## Storage layout (`AETHER_STORAGE_ROOT`)
 
