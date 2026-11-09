@@ -43,9 +43,9 @@ def expand(conn: Connection, evidence_id: str) -> dict[str, Any]:
             conn.execute(
                 text(
                     """SELECT s.id, s.item_id, s.collection, s.acquired_at, s.platform, s.processing_baseline, s.stac_sha256,
-                      i.status, i.reason_code, i.datatake_id
+                      i.status, i.reason_code, i.datatake_id, i.period
                FROM analysis_run_inputs i JOIN scenes s ON s.id = i.scene_id
-               WHERE i.analysis_run_id = :a ORDER BY s.acquired_at, s.item_id"""
+               WHERE i.analysis_run_id = :a ORDER BY i.period, s.acquired_at, s.item_id"""
                 ),
                 {"a": ev["analysis_run_id"]},
             )

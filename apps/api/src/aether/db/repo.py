@@ -402,8 +402,9 @@ def get_evidence(conn: Connection, evidence_id: str) -> dict[str, Any]:
             text(
                 """SELECT evidence_id, schema_version, project_id, analysis_run_id, processing_run_id, kind,
                   ST_AsGeoJSON(geom, 9)::jsonb AS geometry, lower(observed_period_a) AS period_start,
-                  upper(observed_period_a) - 1 AS period_end, facts, confidence_band, limitations, artifact_ids,
-                  content_sha256, created_at
+                  upper(observed_period_a) - 1 AS period_end, lower(observed_period_b) AS period_b_start,
+                  upper(observed_period_b) - 1 AS period_b_end, geometry_artifact_id, facts, confidence_band,
+                  limitations, artifact_ids, content_sha256, created_at
            FROM evidence WHERE evidence_id = :id"""
             ),
             {"id": evidence_id},
@@ -419,7 +420,7 @@ def get_evidence(conn: Connection, evidence_id: str) -> dict[str, Any]:
         for m in conn.execute(
             text(
                 """SELECT measurement_id, quantity, statistic, status, value, unavailable_reason, unit, denominator_quantity,
-                  denominator_measurement_id, n_samples, region, method, parameters_hash
+                  denominator_measurement_id, n_samples, region, geometry_evidence_id, method, parameters_hash
            FROM measurements WHERE evidence_id = :id ORDER BY quantity, statistic"""
             ),
             {"id": evidence_id},
@@ -481,3 +482,74 @@ def run_artifacts(conn: Connection, analysis_run_id: uuid.UUID) -> list[dict[str
         {"r": analysis_run_id},
     ).mappings()
     return [dict(r) for r in rows]
+
+
+# --- change runs (Phase 2 reads) ---------------------------------------------------------------------
+
+
+def run_artifact_periods(conn: Connection, analysis_run_id: uuid.UUID) -> dict[uuid.UUID, str | None]:
+    """Artifact id → ``a`` | ``b`` | ``delta`` for a change run's layers (plan §12; null when ambiguous).
+
+    Period comes from what the run itself recorded: per-period index evidence (``facts.period``), the
+    period-tagged display-composite steps, and the delta / change-summary evidence (``delta``).
+    """
+    rows = conn.execute(
+        text(
+            """SELECT unnest(e.artifact_ids) AS id,
+                  CASE WHEN e.kind = 'change_summary' THEN 'delta' ELSE e.facts->>'period' END AS period
+               FROM evidence e
+               WHERE e.analysis_run_id = :r AND (e.kind = 'change_summary' OR e.facts ? 'period')
+               UNION ALL
+               SELECT a.id, st->>'period'
+               FROM processing_runs p, jsonb_array_elements(p.steps) st JOIN artifacts a ON a.sha256 = st->>'artifact_sha256'
+               WHERE p.analysis_run_id = :r AND st->>'kind' = 'display_composite'"""
+        ),
+        {"r": analysis_run_id},
+    ).mappings()
+    seen: dict[uuid.UUID, set[str | None]] = {}
+    for row in rows:
+        seen.setdefault(row["id"], set()).add(row["period"])
+    return {k: (next(iter(v)) if len(v) == 1 else None) for k, v in seen.items()}
+
+
+def change_event_rows(
+    conn: Connection, analysis_run_id: uuid.UUID, bbox: tuple[float, float, float, float] | None, category: str | None
+) -> list[dict[str, Any]]:
+    """Persisted change events (EPSG:4326 evidence copy) ordered by global ``event_label`` (C-17)."""
+    rows = conn.execute(
+        text(
+            """SELECT e.evidence_id, ce.category, ce.touches_aoi_boundary, e.confidence_band, e.facts,
+                  e.limitations, e.geometry_artifact_id, ST_AsGeoJSON(e.geom, 15)::jsonb AS geometry
+               FROM change_events ce JOIN evidence e ON e.evidence_id = ce.evidence_id
+               WHERE ce.analysis_run_id = :r
+                 AND (CAST(:cat AS text) IS NULL OR ce.category = CAST(:cat AS text))
+                 AND (CAST(:minx AS float8) IS NULL
+                      OR ST_Intersects(e.geom, ST_MakeEnvelope(:minx, :miny, :maxx, :maxy, 4326)))
+               ORDER BY (e.facts->>'event_label')::int"""
+        ),
+        {
+            "r": analysis_run_id,
+            "cat": category,
+            "minx": bbox[0] if bbox else None,
+            "miny": bbox[1] if bbox else None,
+            "maxx": bbox[2] if bbox else None,
+            "maxy": bbox[3] if bbox else None,
+        },
+    ).mappings()
+    out = [dict(r) for r in rows]
+    if not out:
+        return out
+    ms: dict[str, list[dict[str, Any]]] = {}
+    for m in conn.execute(
+        text(
+            """SELECT evidence_id, measurement_id, quantity, statistic, status, value, unavailable_reason, unit,
+                  denominator_quantity, denominator_measurement_id, n_samples, region, geometry_evidence_id, method
+               FROM measurements WHERE evidence_id = ANY(:ids) ORDER BY evidence_id, quantity, statistic"""
+        ),
+        {"ids": [r["evidence_id"] for r in out]},
+    ).mappings():
+        row = dict(m)
+        ms.setdefault(row.pop("evidence_id"), []).append(row)
+    for r in out:
+        r["measurements"] = ms.get(r["evidence_id"], [])
+    return out

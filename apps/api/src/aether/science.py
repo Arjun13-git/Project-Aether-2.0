@@ -283,3 +283,33 @@ def parameter_calibration_table() -> list[dict[str, object]]:
     """Disclosure table: every numeric threshold with its calibration status (I-20)."""
     params = (N_MIN, STATS_MIN_SUPPORT, COVERAGE_INSUFFICIENT_BELOW, COVERAGE_PARTIAL_BELOW)
     return [{"name": p.name, "value": p.value, "calibration": str(p.calibration), "note": p.note} for p in params]
+
+
+def change_parameter_calibration_table() -> list[dict[str, object]]:
+    """Disclosure table of a change run (C5 §9, I-20): every frozen numeric threshold with its status.
+
+    The snapshot rows plus the change defaults, band cut-offs and co-registration constants of
+    :func:`change_parameters`. Plain C3 §9 constants are untuned engineering defaults as well.
+    """
+    params = (
+        N_MIN,
+        STATS_MIN_SUPPORT,
+        COVERAGE_INSUFFICIENT_BELOW,
+        COVERAGE_PARTIAL_BELOW,
+        CHANGE_K,
+        *CHANGE_ABS_THRESHOLDS.values(),
+        CHANGE_MMU_M2,
+        ROBUST_MIN_ELIGIBLE_PX,
+        WIDESPREAD_Z,
+        WIDESPREAD_FRAC,
+        BAND_HIGHER_MIN_STRENGTH,
+        BAND_HIGHER_MIN_SUPPORT,
+        BAND_HIGHER_MAX_COREG_RESIDUAL_PX,
+        BAND_MODERATE_MIN_STRENGTH,
+        BAND_MODERATE_MIN_SUPPORT,
+        COREG_MAX_RESIDUAL_PX,
+        Parameter("coreg_min_window_px", COREG_MIN_WINDOW_PX, Calibration.UNTUNED, "C3 §9 / C-15 support window"),
+        Parameter("coreg_min_grid_fraction", COREG_MIN_GRID_FRACTION, Calibration.UNTUNED, "C3 §9 grid-level support"),
+        Parameter("upsample_factor", COREG_UPSAMPLE_FACTOR, Calibration.UNTUNED, "C3 §9 phase-correlation upsampling"),
+    )
+    return [{"name": p.name, "value": p.value, "calibration": str(p.calibration), "note": p.note} for p in params]

@@ -1,7 +1,7 @@
 """Full Phase 1 workflow through the API and worker with synthetic STAC and rasters (no network).
 
 create project → AOI → catalog search → submit snapshot → worker → evidence → provenance → layers →
-tiles, plus the Phase 1 boundary (change → 422) and single-transaction failure semantics.
+tiles, change-request acceptance (plan §18) and single-transaction failure semantics.
 """
 
 from __future__ import annotations
@@ -151,19 +151,22 @@ def test_full_snapshot_workflow(setup):
     assert client.get(f"/api/v1/tiles/{ndvi['artifact_id']}/14/{tx}/{ty}.png?render_name=rgb").status_code == 422
 
 
-def test_change_requests_are_refused_in_phase1(setup):
+def test_change_requests_are_accepted(setup):
+    """Replaces the Phase 1 refusal test (implementation plan §18): change runs are the contracted Phase 2 behaviour."""
     client, *_ = setup
     _, aoi = _project_aoi(client)
-    r = client.post(
-        "/api/v1/analyses",
-        json={
-            "aoi_id": aoi["id"],
-            "type": "change",
-            "period_a": PERIOD,
-            "period_b": {"start": "2025-06-01", "end": "2025-07-15"},
-        },
-    )
-    assert r.status_code == 422 and r.json()["error"]["code"] == "analysis_type_not_available"
+    body = {
+        "aoi_id": aoi["id"],
+        "type": "change",
+        "period_a": PERIOD,
+        "period_b": {"start": "2025-06-01", "end": "2025-07-15"},
+    }
+    r = client.post("/api/v1/analyses", json=body)
+    assert r.status_code == 202, r.text
+    detail = client.get(f"/api/v1/analyses/{r.json()['analysis_run_id']}").json()
+    assert detail["type"] == "change" and detail["period_b_start"] == "2025-06-01"
+    missing_b = client.post("/api/v1/analyses", json={k: v for k, v in body.items() if k != "period_b"})
+    assert missing_b.status_code == 422 and missing_b.json()["error"]["code"] == "periods_invalid"
 
 
 def test_invalid_aoi_and_period_errors_are_structured(setup):

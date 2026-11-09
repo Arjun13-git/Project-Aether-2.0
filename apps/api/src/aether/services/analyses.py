@@ -1,4 +1,9 @@
-"""Analysis requests: preflight, idempotent submission and read models (Phase 1: snapshot only)."""
+"""Analysis requests: preflight, idempotent submission and read models.
+
+``snapshot`` runs (Phase 1) keep their exact behaviour and identity. ``change`` runs (Phase 2,
+implementation plan §12) are routed to :mod:`aether.services.change_persistence` for submission and get
+a STAC-level, non-persisting preflight here. No request carries scientific parameters (C-09).
+"""
 
 from __future__ import annotations
 
@@ -19,20 +24,21 @@ from aether.geo.grid import build_analysis_grid
 from aether.geo.stac.client import StacSearcher
 from aether.geo.stac.eligibility import group_observations
 from aether.jobs import queue
+from aether.services import change_persistence
 from aether.services.catalog import discover, scene_summary
 
 MAX_QUEUED_PER_PROJECT = 10  # Security §3
 
 
-def _require_snapshot(analysis_type: str) -> None:
-    if analysis_type == "change":
-        raise AetherError(
-            "analysis_type_not_available",
-            "change analysis is not available until Phase 2; Phase 1 runs single-period snapshots only",
-            http_status=422,
-        )
-    if analysis_type != "snapshot":
+def _require_known_type(analysis_type: str) -> None:
+    if analysis_type not in ("snapshot", "change"):
         raise AetherError("analysis_type_invalid", f"unknown analysis type {analysis_type!r}")
+
+
+def _require_period_b(period_b: dict[str, Any] | None) -> Period:
+    if period_b is None:
+        raise AetherError("periods_invalid", "change runs take period_a and period_b")
+    return _period(period_b)
 
 
 def _period(p: dict[str, Any]) -> Period:
@@ -65,7 +71,9 @@ def preflight(
     period_a: dict[str, Any],
     period_b: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    _require_snapshot(analysis_type)
+    _require_known_type(analysis_type)
+    if analysis_type == "change":
+        return _preflight_change(conn, searcher, aoi_id=aoi_id, period_a=_period(period_a), period_b=_require_period_b(period_b))
     if period_b is not None:
         raise AetherError("periods_invalid", "snapshot runs take period_a only")
     period = _period(period_a)
@@ -87,6 +95,57 @@ def preflight(
     }
 
 
+def _preflight_change(
+    conn: Connection, searcher: StacSearcher, *, aoi_id: uuid.UUID, period_a: Period, period_b: Period
+) -> dict[str, Any]:
+    """Change preflight (plan §12, C-15): STAC-level counts per period, pair rules and the extent-based
+    co-registration assessability. Synchronous; nothing is persisted; reads no pixels.
+
+    This is a disclosure, not a gate: AOI joint coverage and the registration support are pixel
+    quantities decided in the job, in the frozen order observations → coverage → co-registration (C-03).
+    """
+    validate_pair(period_a, period_b)  # C4 §1 codes → 422
+    aoi = repo.get_aoi(conn, aoi_id)
+    grid = build_analysis_grid(shape(aoi["geometry"]), aoi["utm_epsg"])
+    n_min = int(science.N_MIN.value)
+    periods: dict[str, Any] = {}
+    scenes: dict[str, Any] = {}
+    for label, period in (("a", period_a), ("b", period_b)):
+        _, found = discover(searcher, aoi, period)
+        eligible = len(group_observations(found))
+        periods[label] = {
+            "start": period.start.isoformat(),
+            "end": period.end.isoformat(),
+            "days": period.days,
+            "items_considered": len(found),
+            "observations_eligible": eligible,
+            "sufficient_observations_possible": eligible >= n_min,
+        }
+        scenes[label] = [scene_summary(s) for s in found]
+    min_px = science.COREG_MIN_WINDOW_PX
+    assessable = grid.g10.width >= min_px and grid.g10.height >= min_px
+    return {
+        "type": "change",
+        "pair_rules": "passed",
+        "periods": periods,
+        "grid": {"G10": grid.g10.describe(), "G20": grid.g20.describe()},
+        "n_min": n_min,
+        "sufficient_observations_possible": all(p["sufficient_observations_possible"] for p in periods.values()),
+        "coregistration_assessable_by_extent": assessable,
+        "coregistration_note": (
+            "The analysis grid supports the 256 × 256 px co-registration window; whether registration is "
+            "verified also depends on jointly valid pixels, decided in the job (C3 §9)."
+            if assessable
+            else "The analysis grid is smaller than 256 × 256 px, so co-registration cannot be assessed: the run "
+            "would carry the blocking limitation coregistration_not_verified and confidence capped at lower (C-15)."
+        ),
+        "outcome_order": ["insufficient_observations", "insufficient_coverage", "coregistration_failed"],
+        "note": "eligibility is STAC-level; read-time checks, AOI joint coverage and registration support are "
+        "determined from pixels in the job",
+        "scenes": scenes,
+    }
+
+
 def submit(
     conn: Connection,
     *,
@@ -96,7 +155,12 @@ def submit(
     period_b: dict[str, Any] | None = None,
 ) -> tuple[dict[str, Any], bool]:
     """Create (or return the existing) analysis run + job. Returns (body, created)."""
-    _require_snapshot(analysis_type)
+    _require_known_type(analysis_type)
+    if analysis_type == "change":
+        # Change identity, idempotency and job creation live in the change persistence service (C-10).
+        return change_persistence.submit_change(
+            conn, aoi_id=aoi_id, period_a=_period(period_a), period_b=_require_period_b(period_b)
+        )
     if period_b is not None:
         raise AetherError("periods_invalid", "snapshot runs take period_a only")
     period = _period(period_a)
@@ -172,7 +236,8 @@ def get_analysis(conn: Connection, run_id: uuid.UUID) -> dict[str, Any]:
         conn.execute(
             text(
                 """SELECT r.id, r.project_id, r.aoi_id, r.type, lower(r.period_a) AS period_start,
-                  upper(r.period_a) - 1 AS period_end, r.collection, r.parameters, r.algorithm_versions, r.grid_hash,
+                  upper(r.period_a) - 1 AS period_end, lower(r.period_b) AS period_b_start,
+                  upper(r.period_b) - 1 AS period_b_end, r.collection, r.parameters, r.algorithm_versions, r.grid_hash,
                   r.status, r.outcome, r.created_at, r.completed_at,
                   (SELECT j.id FROM jobs j WHERE j.analysis_run_id = r.id ORDER BY j.queued_at DESC LIMIT 1) AS job_id
            FROM analysis_runs r WHERE r.id=:id"""
@@ -189,8 +254,10 @@ def get_analysis(conn: Connection, run_id: uuid.UUID) -> dict[str, Any]:
         dict(r)
         for r in conn.execute(
             text(
-                """SELECT evidence_id, kind, facts->>'index' AS index, limitations FROM evidence
-           WHERE analysis_run_id=:id ORDER BY kind, facts->>'index'"""
+                """SELECT evidence_id, kind, facts->>'index' AS index, facts->>'period' AS period,
+                  (facts->>'event_label')::int AS event_label, limitations FROM evidence
+           WHERE analysis_run_id=:id
+           ORDER BY kind, facts->>'index', facts->>'period', (facts->>'event_label')::int, evidence_id"""
             ),
             {"id": run_id},
         ).mappings()
@@ -207,7 +274,9 @@ def get_analysis(conn: Connection, run_id: uuid.UUID) -> dict[str, Any]:
             {"id": run_id},
         ).mappings()
     ]
-    out["calibration"] = science.parameter_calibration_table()
+    out["calibration"] = (
+        science.change_parameter_calibration_table() if out["type"] == "change" else science.parameter_calibration_table()
+    )
     if out["job_id"] is not None:
         out["job"] = queue.get_job(conn, out["job_id"])
     return out
@@ -218,7 +287,8 @@ def list_analyses(conn: Connection, project_id: uuid.UUID) -> list[dict[str, Any
         dict(r)
         for r in conn.execute(
             text(
-                """SELECT id, aoi_id, type, lower(period_a) AS period_start, upper(period_a) - 1 AS period_end, status,
+                """SELECT id, aoi_id, type, lower(period_a) AS period_start, upper(period_a) - 1 AS period_end,
+                  lower(period_b) AS period_b_start, upper(period_b) - 1 AS period_b_end, status,
                   outcome, created_at, completed_at
            FROM analysis_runs WHERE project_id=:p ORDER BY created_at DESC"""
             ),

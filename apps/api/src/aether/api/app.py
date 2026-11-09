@@ -1,4 +1,4 @@
-"""FastAPI application: Phase 1 API surface under /api/v1 (BACKEND-DESIGN.md)."""
+"""FastAPI application: the /api/v1 surface (BACKEND-DESIGN.md; Phase 2 change analysis per plan §12)."""
 
 from __future__ import annotations
 
@@ -21,7 +21,7 @@ from aether.domain.errors import AetherError, NotFound
 from aether.domain.registries import LIMITATIONS
 from aether.geo.stac.client import EarthSearchClient, StacSearcher
 from aether.jobs import queue
-from aether.services import analyses, aois, catalog, provenance_view
+from aether.services import analyses, aois, catalog, change_results, provenance_view
 from aether.settings import get_settings
 
 log = logging.getLogger("aether.api")
@@ -43,6 +43,16 @@ def _error(request: Request, status: int, code: str, message: str, details: dict
     return JSONResponse(status_code=status, content=body)
 
 
+def _reject_change_extras(body: S.AnalysisIn) -> None:
+    """C-09: a change request carries no parameters, collection or thresholds; any extra field is a 422."""
+    if body.type == "change" and body.model_extra:
+        raise AetherError(
+            "request_invalid",
+            "change analyses accept only aoi_id, type, period_a and period_b (frozen defaults, no overrides)",
+            details={"unsupported_fields": sorted(body.model_extra)},
+        )
+
+
 r = APIRouter(prefix="/api/v1")
 ERR: dict[int | str, dict[str, Any]] = {422: {"model": S.ErrorResponse}, 404: {"model": S.ErrorResponse}}
 
@@ -52,9 +62,10 @@ def health() -> dict[str, Any]:
     return {
         "status": "ok",
         "algorithm_versions": science.SNAPSHOT_ALGORITHM_VERSIONS,
-        "phase": 1,
-        "capabilities": ["aoi", "catalog_search", "snapshot_analysis", "evidence", "tiles"],
-        "not_available": ["change_analysis", "analyst", "reports"],
+        "change_algorithm_versions": science.CHANGE_ALGORITHM_VERSIONS,
+        "phase": 2,
+        "capabilities": ["aoi", "catalog_search", "snapshot_analysis", "change_analysis", "evidence", "tiles"],
+        "not_available": ["analyst", "reports"],
     }
 
 
@@ -108,7 +119,8 @@ def catalog_search(body: S.CatalogSearchIn, conn: Connection = Depends(db), st: 
 
 @r.post("/analyses/preflight", responses=ERR, tags=["analyses"])
 def preflight(body: S.AnalysisIn, conn: Connection = Depends(db), st: StacSearcher = Depends(searcher)) -> Any:
-    return analyses.preflight(
+    _reject_change_extras(body)
+    out = analyses.preflight(
         conn,
         st,
         aoi_id=body.aoi_id,
@@ -116,10 +128,14 @@ def preflight(body: S.AnalysisIn, conn: Connection = Depends(db), st: StacSearch
         period_a=body.period_a.model_dump(mode="json"),
         period_b=body.period_b.model_dump(mode="json") if body.period_b else None,
     )
+    if body.type == "change":
+        return S.ChangePreflightOut(**out).model_dump(mode="json")
+    return out
 
 
 @r.post("/analyses", response_model=S.AnalysisSubmitted, status_code=202, responses=ERR, tags=["analyses"])
 def submit_analysis(body: S.AnalysisIn, conn: Connection = Depends(db)) -> Any:
+    _reject_change_extras(body)
     out, created = analyses.submit(
         conn,
         aoi_id=body.aoi_id,
@@ -145,7 +161,8 @@ def get_analysis(analysis_id: uuid.UUID, conn: Connection = Depends(db)) -> Any:
 @r.get("/analyses/{analysis_id}/layers", response_model=list[S.Layer], responses=ERR, tags=["analyses"])
 def layers(analysis_id: uuid.UUID, conn: Connection = Depends(db)) -> Any:
 
-    analyses.get_analysis(conn, analysis_id)
+    run = analyses.get_analysis(conn, analysis_id)
+    periods = repo.run_artifact_periods(conn, analysis_id) if run["type"] == "change" else {}
     out: list[dict[str, Any]] = []
     for row in repo.run_artifacts(conn, analysis_id):
         for rend in tiles.renderings_for(row["kind"], row["band_names"]):
@@ -165,12 +182,24 @@ def layers(analysis_id: uuid.UUID, conn: Connection = Depends(db)) -> Any:
                 "grid": "G10" if row["resolution_m"] == 10 else "G20",
                 "resolution_m": row["resolution_m"],
                 "sha256": row["sha256"],
+                "period": periods.get(row["id"]),
             }
             if row["kind"] == "composite":
                 out.insert(0, layer)  # the display composite (true colour) is listed first
             else:
                 out.append(layer)
     return out
+
+
+@r.get("/changes", response_model=S.ChangeFeatureCollection, responses={**ERR, 409: {"model": S.ErrorResponse}}, tags=["changes"])
+def changes(
+    analysis_run_id: uuid.UUID,
+    bbox: str | None = None,
+    category: str | None = None,
+    conn: Connection = Depends(db),
+) -> Any:
+    """Persisted change events as GeoJSON (EPSG:4326 copy; authoritative geometry = ``geometry_artifact_id``)."""
+    return change_results.feature_collection(conn, analysis_run_id=analysis_run_id, bbox=bbox, category=category)
 
 
 @r.get("/analyses/{run_a}/compare/{run_b}", response_model=S.CompareOut, responses=ERR, tags=["analyses"])
@@ -209,9 +238,9 @@ def get_provenance(evidence_id: str, conn: Connection = Depends(db)) -> Any:
 def create_app() -> FastAPI:
     app = FastAPI(
         title="Aether 2.0 API",
-        version="0.1.0-phase1",
-        description="Evidence-first Earth-observation snapshot analysis (Phase 1). "
-        "Change analysis, the analyst and reports are not available in Phase 1.",
+        version="0.2.0-phase2",
+        description="Evidence-first Earth-observation snapshot and two-period change analysis. "
+        "The analyst and reports are not available yet.",
     )
 
     @app.exception_handler(AetherError)

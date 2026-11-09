@@ -6,7 +6,7 @@ import uuid
 from datetime import date, datetime
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class ErrorBody(BaseModel):
@@ -73,6 +73,7 @@ class Measurement(BaseModel):
     denominator_measurement_id: str | None = None
     n_samples: int | None = None
     region: str | None = None
+    geometry_evidence_id: str | None = None
     method: str | None = None
 
 
@@ -103,6 +104,14 @@ class CatalogSearchOut(BaseModel):
 
 
 class AnalysisIn(BaseModel):
+    """No scientific parameters, collection or threshold fields exist (C5 §9, C-09).
+
+    Unknown fields are kept (not validated) so snapshot requests behave exactly as in Phase 1, where they
+    were ignored (plan §18); change requests reject them (no override can be smuggled in, C-09).
+    """
+
+    model_config = ConfigDict(extra="allow")
+
     aoi_id: uuid.UUID
     type: Literal["snapshot", "change"] = "snapshot"
     period_a: PeriodIn
@@ -135,6 +144,8 @@ class EvidenceRef(BaseModel):
     evidence_id: str
     kind: str
     index: str | None
+    period: Literal["a", "b", "delta"] | None = None  # change runs: per-period vs delta statistics
+    event_label: int | None = None  # change_event evidence (C-17 global label)
     limitations: list[dict[str, Any]]
 
 
@@ -154,6 +165,8 @@ class AnalysisSummary(BaseModel):
     type: str
     period_start: date
     period_end: date
+    period_b_start: date | None = None  # change runs only (plan §12)
+    period_b_end: date | None = None
     status: str
     outcome: str | None
     created_at: datetime
@@ -189,6 +202,9 @@ class Evidence(BaseModel):
     geometry: dict[str, Any] | None
     period_start: date | None
     period_end: date | None
+    period_b_start: date | None = None  # observed_period_b (C-16)
+    period_b_end: date | None = None
+    geometry_artifact_id: uuid.UUID | None = None  # authoritative native geometry (change_events.gpkg)
     facts: dict[str, Any]
     confidence_band: str
     limitations: list[Limitation]
@@ -208,6 +224,7 @@ class Layer(BaseModel):
     grid: str
     resolution_m: float
     sha256: str
+    period: Literal["a", "b", "delta"] | None = None  # change runs; null for snapshots
 
 
 class CompareOut(BaseModel):
@@ -215,3 +232,62 @@ class CompareOut(BaseModel):
     label: str
     period_a: tuple[str, str]
     period_b: tuple[str, str]
+
+
+# --- change analyses (Phase 2) ----------------------------------------------------------------------
+
+
+class PreflightPeriod(BaseModel):
+    start: date
+    end: date
+    days: int
+    items_considered: int
+    observations_eligible: int
+    sufficient_observations_possible: bool
+
+
+class ChangePreflightOut(BaseModel):
+    """STAC-level disclosure (plan §12, C-15); joint coverage and registration support are decided in the job."""
+
+    type: Literal["change"]
+    pair_rules: Literal["passed"]
+    periods: dict[Literal["a", "b"], PreflightPeriod]
+    grid: dict[str, dict[str, Any]]
+    n_min: int
+    sufficient_observations_possible: bool
+    coregistration_assessable_by_extent: bool
+    coregistration_note: str
+    outcome_order: list[str]
+    note: str
+    scenes: dict[Literal["a", "b"], list[SceneRow]]
+
+
+Sign = Literal["-", "0", "+"]
+
+
+class ChangeEventProperties(BaseModel):
+    evidence_id: str
+    event_label: int
+    category: Literal["water_increase", "water_decrease", "built_bare_increase", "veg_loss", "veg_gain", "other_significant"]
+    touches_aoi_boundary: bool
+    confidence_band: Literal["higher", "moderate", "lower"]
+    index_flags: dict[Literal["ndvi", "mndwi", "ndbi"], list[Sign]]
+    mode: Literal["robust", "absolute_only"]
+    geometry_artifact_id: uuid.UUID
+    limitations: list[Limitation]
+    measurements: list[Measurement]
+
+
+class ChangeFeature(BaseModel):
+    type: Literal["Feature"]
+    id: int
+    geometry: dict[str, Any] = Field(description="EPSG:4326 copy; authoritative UTM geometry is the GeoPackage")
+    properties: ChangeEventProperties
+
+
+class ChangeFeatureCollection(BaseModel):
+    type: Literal["FeatureCollection"]
+    analysis_run_id: uuid.UUID
+    outcome: str | None
+    feature_count: int
+    features: list[ChangeFeature]

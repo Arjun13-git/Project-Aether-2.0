@@ -40,6 +40,17 @@ class Rendering:
 
 INDEX_CMAPS = {"ndvi": "brbg", "ndwi": "rdbu", "mndwi": "rdbu", "ndbi": "puor"}  # colour-blind-safe diverging
 N_VALID_MAX = 30
+DELTA_RANGE = (-0.5, 0.5)  # ADR-021: deltas −0.5…0.5 diverging, centred on 0
+# C5 §6 category codes → Okabe–Ito colour-blind-safe palette. Provisional fixed palette (C-08: final
+# styling is recorded in the ADR-021 addendum of the UI commit); code 0 (none) is transparent.
+CATEGORY_PALETTE: dict[int, tuple[str, str]] = {
+    1: ("water_increase", "#0072B2"),
+    2: ("water_decrease", "#56B4E9"),
+    3: ("built_bare_increase", "#E69F00"),
+    4: ("veg_loss", "#D55E00"),
+    5: ("veg_gain", "#009E73"),
+    6: ("other_significant", "#CC79A7"),
+}
 
 RENDERINGS: dict[str, Rendering] = {
     "rgb": Rendering(
@@ -83,13 +94,61 @@ RENDERINGS: dict[str, Rendering] = {
         True,
         {"type": "mask", "colour": "#7f7f7f", "meaning": f"no reliable data: n_valid < n_min ({science.N_MIN.value})"},
     ),
+    # --- change runs (Phase 2; C-08 display semantics) ---
+    **{
+        f"delta:{name}": Rendering(
+            f"delta:{name}",
+            ("delta",),
+            DELTA_RANGE,
+            INDEX_CMAPS[name],
+            False,
+            {
+                "type": "diverging",
+                "colormap": INDEX_CMAPS[name],
+                "unit": "index difference (dimensionless)",
+                "range": list(DELTA_RANGE),
+                "centre": 0,
+                "index": name,
+                "note": "Δ = B − A · positive = index increased",
+            },
+        )
+        for name in science.CHANGE_INDICES
+    },
+    "category": Rendering(
+        "category",
+        ("category",),
+        None,
+        None,
+        True,
+        {
+            "type": "categorical",
+            "classes": [{"code": c, "category": n, "colour": col} for c, (n, col) in CATEGORY_PALETTE.items()],
+            "note": "typical-correlate label of an index change, not land-cover truth",
+        },
+    ),
+    "not_compared": Rendering(
+        "not_compared",
+        ("joint_valid",),
+        None,
+        None,
+        True,
+        {"type": "mask", "colour": "#7f7f7f", "meaning": "not compared: outside the AOI or not valid in both periods"},
+    ),
 }
 
 
 def renderings_for(kind: str, band_names: list[str]) -> list[Rendering]:
     if kind == "index":
         return [RENDERINGS[f"index:{band_names[0]}"]]
-    return [r for r in RENDERINGS.values() if kind in r.kinds and not r.name.startswith("index:")]
+    if kind == "delta":
+        return [RENDERINGS[f"delta:{band_names[0].removeprefix('delta_')}"]]
+    if kind == "composite" and list(band_names) != ["red", "green", "blue"]:
+        return []  # the NIR QA composite is a co-registration input, never a map layer (C4 §3)
+    return [r for r in RENDERINGS.values() if kind in r.kinds and not r.name.startswith(("index:", "delta:"))]
+
+
+def _hex_rgba(colour: str, alpha: int = 255) -> tuple[int, int, int, int]:
+    return int(colour[1:3], 16), int(colour[3:5], 16), int(colour[5:7], 16), alpha
 
 
 def _artifact(artifact_id: uuid.UUID) -> dict[str, Any]:
@@ -121,10 +180,18 @@ def tile(artifact_id: uuid.UUID, z: int, x: int, y: int, render_name: str = "") 
     except TileOutsideBounds:
         return Response(status_code=204)
 
-    if r.name == "insufficient":
+    if r.name == "category":
+        palette = {code: _hex_rgba(col) for code, (_, col) in CATEGORY_PALETTE.items()}
+        palette[0] = (0, 0, 0, 0)
+        return Response(
+            img.render(img_format="PNG", colormap=palette),
+            media_type="image/png",
+            headers={"Cache-Control": "public, max-age=86400, immutable"},
+        )
+    if r.name in ("insufficient", "not_compared"):
         data = img.array.data[0]
         inside = ~np.ma.getmaskarray(img.array)[0] & img.mask.astype(bool)
-        show = inside & (data < science.N_MIN.value)
+        show = inside & ((data < science.N_MIN.value) if r.name == "insufficient" else (data == 0))
         rgba = np.zeros((4, *data.shape), np.uint8)
         rgba[:3] = 127
         rgba[3] = np.where(show, 150, 0)
