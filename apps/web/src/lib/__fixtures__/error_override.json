@@ -1,0 +1,15 @@
+{
+ "body": {
+  "error": {
+   "code": "request_invalid",
+   "details": {
+    "unsupported_fields": [
+     "k"
+    ]
+   },
+   "message": "change analyses accept only aoi_id, type, period_a and period_b (frozen defaults, no overrides)",
+   "request_id": "98ad7cbfccd8489c990af7f9b257253e"
+  }
+ },
+ "status": 422
+}

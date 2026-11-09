@@ -1,0 +1,337 @@
+{
+ "analysis_run_id": "9b7f2fe9-fc4f-4564-be8c-6d3f3d279911",
+ "artifact_ids": [
+  "841c88e2-146b-4894-a233-0857e4507a9d",
+  "74fab9b5-8b3e-4c6f-921d-d4fa0f75ff1a"
+ ],
+ "confidence_band": "higher",
+ "content_sha256": "9a7844a96605bb0397e300a3b95f4188cd434ac9da8bceb54511537f174a1814",
+ "created_at": "2026-11-09T08:33:39.851623Z",
+ "evidence_id": "ev_19b2e17a84904efd82755be83d8a074e",
+ "facts": {
+  "category": "veg_loss",
+  "category_note": "typical-correlate label of an index change, not a land-cover or object claim",
+  "change_version": "change.index_diff.v1",
+  "confidence_band_note": "rule-based data-quality indicator (C5 \u00a78), not a calibrated probability",
+  "epsg": 32610,
+  "event_label": 1,
+  "geometry_note": "EPSG:4326 copy; authoritative pixel-edge UTM geometry is change_events.gpkg (FID = event_label)",
+  "grid_hash": "53f4848b1dafd4a365ed314edb713635f650d27d6dec0425c2a6c3be38d93985",
+  "index_flags": {
+   "mndwi": [
+    "0"
+   ],
+   "ndbi": [
+    "0"
+   ],
+   "ndvi": [
+    "-"
+   ]
+  },
+  "mode": "robust",
+  "touches_aoi_boundary": false
+ },
+ "geometry": {
+  "coordinates": [
+   [
+    [
+     -121.752081717,
+     38.538378691
+    ],
+    [
+     -121.752095729,
+     38.537567798
+    ],
+    [
+     -121.751636873,
+     38.537562905
+    ],
+    [
+     -121.751647775,
+     38.53693221
+    ],
+    [
+     -121.751418349,
+     38.536929764
+    ],
+    [
+     -121.75143081,
+     38.536208969
+    ],
+    [
+     -121.751660234,
+     38.536211416
+    ],
+    [
+     -121.751699165,
+     38.533958933
+    ],
+    [
+     -121.747110839,
+     38.533909919
+    ],
+    [
+     -121.747048318,
+     38.537513885
+    ],
+    [
+     -121.750719161,
+     38.537553116
+    ],
+    [
+     -121.750730071,
+     38.536922421
+    ],
+    [
+     -121.751188923,
+     38.536927317
+    ],
+    [
+     -121.751178017,
+     38.537558012
+    ],
+    [
+     -121.751292731,
+     38.537559235
+    ],
+    [
+     -121.75127871,
+     38.538370129
+    ],
+    [
+     -121.752081717,
+     38.538378691
+    ]
+   ]
+  ],
+  "type": "Polygon"
+ },
+ "geometry_artifact_id": "6ada4e98-aee3-4a2e-ac4b-773cc8ee6b76",
+ "kind": "change_event",
+ "limitations": [
+  {
+   "blocking": false,
+   "code": "thresholds_untuned",
+   "text": "Change thresholds are untuned engineering defaults, not calibrated values."
+  }
+ ],
+ "measurements": [
+  {
+   "denominator_measurement_id": null,
+   "denominator_quantity": null,
+   "geometry_evidence_id": "ev_19b2e17a84904efd82755be83d8a074e",
+   "measurement_id": "ms_60f6f13366a24556bfbfd7932f34a1e8",
+   "method": "change.index_diff.v1@1",
+   "n_samples": 1619,
+   "quantity": "event_area",
+   "region": "event",
+   "statistic": "value",
+   "status": "available",
+   "unavailable_reason": null,
+   "unit": "m2",
+   "value": 161982.17582603852
+  },
+  {
+   "denominator_measurement_id": null,
+   "denominator_quantity": null,
+   "geometry_evidence_id": "ev_19b2e17a84904efd82755be83d8a074e",
+   "measurement_id": "ms_920c8df434304966a616850e78fee6d6",
+   "method": "change.index_diff.v1@1",
+   "n_samples": null,
+   "quantity": "event_flag_pixels.mndwi.negative",
+   "region": "event",
+   "statistic": "count",
+   "status": "available",
+   "unavailable_reason": null,
+   "unit": "count",
+   "value": 0.0
+  },
+  {
+   "denominator_measurement_id": null,
+   "denominator_quantity": null,
+   "geometry_evidence_id": "ev_19b2e17a84904efd82755be83d8a074e",
+   "measurement_id": "ms_65848e17bdd5455c9bf25dd933898392",
+   "method": "change.index_diff.v1@1",
+   "n_samples": null,
+   "quantity": "event_flag_pixels.mndwi.positive",
+   "region": "event",
+   "statistic": "count",
+   "status": "available",
+   "unavailable_reason": null,
+   "unit": "count",
+   "value": 0.0
+  },
+  {
+   "denominator_measurement_id": null,
+   "denominator_quantity": null,
+   "geometry_evidence_id": "ev_19b2e17a84904efd82755be83d8a074e",
+   "measurement_id": "ms_99a1661b3b804ea9b0b469d26f0ef245",
+   "method": "change.index_diff.v1@1",
+   "n_samples": null,
+   "quantity": "event_flag_pixels.ndbi.negative",
+   "region": "event",
+   "statistic": "count",
+   "status": "available",
+   "unavailable_reason": null,
+   "unit": "count",
+   "value": 0.0
+  },
+  {
+   "denominator_measurement_id": null,
+   "denominator_quantity": null,
+   "geometry_evidence_id": "ev_19b2e17a84904efd82755be83d8a074e",
+   "measurement_id": "ms_64c48470dc5542d29ad2c6edb52a7b38",
+   "method": "change.index_diff.v1@1",
+   "n_samples": null,
+   "quantity": "event_flag_pixels.ndbi.positive",
+   "region": "event",
+   "statistic": "count",
+   "status": "available",
+   "unavailable_reason": null,
+   "unit": "count",
+   "value": 0.0
+  },
+  {
+   "denominator_measurement_id": null,
+   "denominator_quantity": null,
+   "geometry_evidence_id": "ev_19b2e17a84904efd82755be83d8a074e",
+   "measurement_id": "ms_3c22df1ed846437a973e9577524e16b6",
+   "method": "change.index_diff.v1@1",
+   "n_samples": null,
+   "quantity": "event_flag_pixels.ndvi.negative",
+   "region": "event",
+   "statistic": "count",
+   "status": "available",
+   "unavailable_reason": null,
+   "unit": "count",
+   "value": 1619.0
+  },
+  {
+   "denominator_measurement_id": null,
+   "denominator_quantity": null,
+   "geometry_evidence_id": "ev_19b2e17a84904efd82755be83d8a074e",
+   "measurement_id": "ms_c155683ff70446a7935f537d000f626d",
+   "method": "change.index_diff.v1@1",
+   "n_samples": null,
+   "quantity": "event_flag_pixels.ndvi.positive",
+   "region": "event",
+   "statistic": "count",
+   "status": "available",
+   "unavailable_reason": null,
+   "unit": "count",
+   "value": 0.0
+  },
+  {
+   "denominator_measurement_id": null,
+   "denominator_quantity": null,
+   "geometry_evidence_id": "ev_19b2e17a84904efd82755be83d8a074e",
+   "measurement_id": "ms_b4e01062ae2547f8af1ebdd3a7af37ca",
+   "method": "change.index_diff.v1@1",
+   "n_samples": 1619,
+   "quantity": "event_median_delta.mndwi",
+   "region": "event",
+   "statistic": "median",
+   "status": "available",
+   "unavailable_reason": null,
+   "unit": "1",
+   "value": -0.0004921257495880127
+  },
+  {
+   "denominator_measurement_id": null,
+   "denominator_quantity": null,
+   "geometry_evidence_id": "ev_19b2e17a84904efd82755be83d8a074e",
+   "measurement_id": "ms_e91fc37c394a4eb8bed2d6739ae2a24b",
+   "method": "change.index_diff.v1@1",
+   "n_samples": 1619,
+   "quantity": "event_median_delta.ndbi",
+   "region": "event",
+   "statistic": "median",
+   "status": "available",
+   "unavailable_reason": null,
+   "unit": "1",
+   "value": 0.00010801851749420166
+  },
+  {
+   "denominator_measurement_id": null,
+   "denominator_quantity": null,
+   "geometry_evidence_id": "ev_19b2e17a84904efd82755be83d8a074e",
+   "measurement_id": "ms_dfb4b9a824204a3c90bbe1bf4528eac9",
+   "method": "change.index_diff.v1@1",
+   "n_samples": 1619,
+   "quantity": "event_median_delta.ndvi",
+   "region": "event",
+   "statistic": "median",
+   "status": "available",
+   "unavailable_reason": null,
+   "unit": "1",
+   "value": -0.5493936240673065
+  },
+  {
+   "denominator_measurement_id": null,
+   "denominator_quantity": null,
+   "geometry_evidence_id": "ev_19b2e17a84904efd82755be83d8a074e",
+   "measurement_id": "ms_60b4d64ec6d04a0d9a68c0a7e2e74511",
+   "method": "change.index_diff.v1@1",
+   "n_samples": 1619,
+   "quantity": "event_pixel_count",
+   "region": "event",
+   "statistic": "count",
+   "status": "available",
+   "unavailable_reason": null,
+   "unit": "count",
+   "value": 1619.0
+  },
+  {
+   "denominator_measurement_id": null,
+   "denominator_quantity": null,
+   "geometry_evidence_id": "ev_19b2e17a84904efd82755be83d8a074e",
+   "measurement_id": "ms_eb15b4f532c74f02994fb048742780d7",
+   "method": "change.index_diff.v1@1",
+   "n_samples": 1619,
+   "quantity": "event_strength",
+   "region": "event",
+   "statistic": "median",
+   "status": "available",
+   "unavailable_reason": null,
+   "unit": "1",
+   "value": 60.75891944844442
+  },
+  {
+   "denominator_measurement_id": null,
+   "denominator_quantity": null,
+   "geometry_evidence_id": "ev_19b2e17a84904efd82755be83d8a074e",
+   "measurement_id": "ms_6c924368facd4639b4866fa27ce3b386",
+   "method": "change.index_diff.v1@1",
+   "n_samples": 1619,
+   "quantity": "event_support_a",
+   "region": "event",
+   "statistic": "median",
+   "status": "available",
+   "unavailable_reason": null,
+   "unit": "count",
+   "value": 6.0
+  },
+  {
+   "denominator_measurement_id": null,
+   "denominator_quantity": null,
+   "geometry_evidence_id": "ev_19b2e17a84904efd82755be83d8a074e",
+   "measurement_id": "ms_ceeb19ecd8674354aa024db79da4b300",
+   "method": "change.index_diff.v1@1",
+   "n_samples": 1619,
+   "quantity": "event_support_b",
+   "region": "event",
+   "statistic": "median",
+   "status": "available",
+   "unavailable_reason": null,
+   "unit": "count",
+   "value": 6.0
+  }
+ ],
+ "period_b_end": "2024-07-15",
+ "period_b_start": "2024-06-01",
+ "period_end": "2023-07-15",
+ "period_start": "2023-06-01",
+ "processing_run_id": "4490363b-ab4b-4b9a-b92f-b77f11060089",
+ "project_id": "6fd41b9a-872d-433b-b9cc-b54ed76b8412",
+ "schema_version": "evidence.v1"
+}

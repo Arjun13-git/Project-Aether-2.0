@@ -1,0 +1,93 @@
+[
+ {
+  "aoi_id": "90623e76-c35c-4a30-8849-5726271cd26c",
+  "completed_at": "2026-11-09T08:33:42.517072Z",
+  "created_at": "2026-11-09T08:33:42.163718Z",
+  "id": "a8bb3ad8-49e3-41a4-8709-31cdfe607563",
+  "outcome": "insufficient_observations",
+  "period_b_end": "2024-07-15",
+  "period_b_start": "2024-06-01",
+  "period_end": "2023-07-15",
+  "period_start": "2023-06-01",
+  "status": "succeeded",
+  "type": "change"
+ },
+ {
+  "aoi_id": "d49a2fd1-653b-4ea5-9e51-a99f21719bfb",
+  "completed_at": "2026-11-09T08:33:42.096304Z",
+  "created_at": "2026-11-09T08:33:41.698995Z",
+  "id": "f76f7364-a951-463b-80dd-884f6782d732",
+  "outcome": "insufficient_coverage",
+  "period_b_end": "2024-07-15",
+  "period_b_start": "2024-06-01",
+  "period_end": "2023-07-15",
+  "period_start": "2023-06-01",
+  "status": "succeeded",
+  "type": "change"
+ },
+ {
+  "aoi_id": "db771133-ab48-4da8-9796-59497f7849d0",
+  "completed_at": "2026-11-09T08:33:41.639206Z",
+  "created_at": "2026-11-09T08:33:41.159181Z",
+  "id": "b37adbd9-1fcb-4039-8b19-53678d90521a",
+  "outcome": "coregistration_failed",
+  "period_b_end": "2024-07-15",
+  "period_b_start": "2024-06-01",
+  "period_end": "2023-07-15",
+  "period_start": "2023-06-01",
+  "status": "succeeded",
+  "type": "change"
+ },
+ {
+  "aoi_id": "9ae1e6b4-5a9d-4402-8353-28853e9c9294",
+  "completed_at": "2026-11-09T08:33:41.068259Z",
+  "created_at": "2026-11-09T08:33:40.658845Z",
+  "id": "b16b1569-6917-42a6-89b4-08daa9ce12b2",
+  "outcome": "completed",
+  "period_b_end": "2024-07-15",
+  "period_b_start": "2024-06-01",
+  "period_end": "2023-07-15",
+  "period_start": "2023-06-01",
+  "status": "succeeded",
+  "type": "change"
+ },
+ {
+  "aoi_id": "624601b5-5787-4451-a295-229d0ee63284",
+  "completed_at": "2026-11-09T08:33:40.580073Z",
+  "created_at": "2026-11-09T08:33:39.958908Z",
+  "id": "21c6665e-5ee2-4d5b-b086-45c758c0c217",
+  "outcome": "completed",
+  "period_b_end": "2024-07-15",
+  "period_b_start": "2024-06-01",
+  "period_end": "2023-07-15",
+  "period_start": "2023-06-01",
+  "status": "succeeded",
+  "type": "change"
+ },
+ {
+  "aoi_id": "77d2e8ac-0839-4c42-bb92-eedca1b2df9c",
+  "completed_at": "2026-11-09T08:33:39.851623Z",
+  "created_at": "2026-11-09T08:33:39.232008Z",
+  "id": "9b7f2fe9-fc4f-4564-be8c-6d3f3d279911",
+  "outcome": "completed",
+  "period_b_end": "2024-07-15",
+  "period_b_start": "2024-06-01",
+  "period_end": "2023-07-15",
+  "period_start": "2023-06-01",
+  "status": "succeeded",
+  "type": "change"
+ },
+ {
+  "aoi_id": "e1c541c3-08f0-4e1e-b36d-030521aba12c",
+  "completed_at": "2026-11-09T08:33:39.176226Z",
+  "created_at": "2026-11-09T08:33:38.871632Z",
+  "id": "87ef5360-80b8-4c03-8b95-abfa6461774c",
+  "outcome": "completed",
+  "period_b_end": null,
+  "period_b_start": null,
+  "period_end": "2023-07-15",
+  "period_start": "2023-06-01",
+  "status": "succeeded",
+  "type": "snapshot"
+ }
+]

@@ -1,0 +1,616 @@
+{
+ "algorithm_versions": {
+  "change": "change.index_diff.v1",
+  "composite": "composite.median_index.v1",
+  "coreg": "coreg.phase_corr.v1",
+  "coverage": "coverage.v1",
+  "grid": "grid.utm_s2.v1",
+  "indices": "indices.s2.v1",
+  "ingest": "ingest.earth_search.v1",
+  "mask": "mask.scl.v1",
+  "radiometry": "radiometry.s2c1.v1",
+  "vector": "vector.gpkg.det1",
+  "zonal_stats": "zonal_stats@1"
+ },
+ "aoi_id": "77d2e8ac-0839-4c42-bb92-eedca1b2df9c",
+ "calibration": [
+  {
+   "calibration": "untuned",
+   "name": "n_min",
+   "note": "Initial engineering default (C5 \u00a79)",
+   "value": 3
+  },
+  {
+   "calibration": "untuned",
+   "name": "stats_min_support_fraction",
+   "note": "C4 \u00a75 unavailable rule",
+   "value": 0.5
+  },
+  {
+   "calibration": "untuned",
+   "name": "coverage_insufficient_below",
+   "note": "C6 \u00a75 policy default",
+   "value": 0.5
+  },
+  {
+   "calibration": "untuned",
+   "name": "coverage_partial_below",
+   "note": "C6 \u00a75 policy default",
+   "value": 0.8
+  },
+  {
+   "calibration": "untuned",
+   "name": "k",
+   "note": "C5 \u00a79 initial default",
+   "value": 3.0
+  },
+  {
+   "calibration": "untuned",
+   "name": "a_NDVI",
+   "note": "C5 \u00a79 initial default",
+   "value": 0.15
+  },
+  {
+   "calibration": "untuned",
+   "name": "a_MNDWI",
+   "note": "C5 \u00a79 initial default",
+   "value": 0.2
+  },
+  {
+   "calibration": "untuned",
+   "name": "a_NDBI",
+   "note": "C5 \u00a79 initial default",
+   "value": 0.1
+  },
+  {
+   "calibration": "product_choice",
+   "name": "mmu_m2",
+   "note": "C5 \u00a79 product default (0.5 ha)",
+   "value": 5000
+  },
+  {
+   "calibration": "untuned",
+   "name": "robust_min_eligible_px",
+   "note": "C5 \u00a74 mode selection",
+   "value": 1000
+  },
+  {
+   "calibration": "untuned",
+   "name": "widespread_z",
+   "note": "C5 \u00a74 mode selection",
+   "value": 2.0
+  },
+  {
+   "calibration": "untuned",
+   "name": "widespread_frac",
+   "note": "C5 \u00a74 mode selection",
+   "value": 0.3
+  },
+  {
+   "calibration": "untuned",
+   "name": "band_higher_min_strength",
+   "note": "C5 \u00a78",
+   "value": 5.0
+  },
+  {
+   "calibration": "untuned",
+   "name": "band_higher_min_support",
+   "note": "C5 \u00a78",
+   "value": 6
+  },
+  {
+   "calibration": "untuned",
+   "name": "band_higher_max_coreg_residual_px",
+   "note": "C5 \u00a78",
+   "value": 0.3
+  },
+  {
+   "calibration": "untuned",
+   "name": "band_moderate_min_strength",
+   "note": "C5 \u00a78",
+   "value": 3.5
+  },
+  {
+   "calibration": "untuned",
+   "name": "band_moderate_min_support",
+   "note": "C5 \u00a78",
+   "value": 4
+  },
+  {
+   "calibration": "untuned",
+   "name": "coreg_max_residual_px",
+   "note": "C3 \u00a79 abort gate",
+   "value": 0.5
+  },
+  {
+   "calibration": "untuned",
+   "name": "coreg_min_window_px",
+   "note": "C3 \u00a79 / C-15 support window",
+   "value": 256
+  },
+  {
+   "calibration": "untuned",
+   "name": "coreg_min_grid_fraction",
+   "note": "C3 \u00a79 grid-level support",
+   "value": 0.5
+  },
+  {
+   "calibration": "untuned",
+   "name": "upsample_factor",
+   "note": "C3 \u00a79 phase-correlation upsampling",
+   "value": 10
+  }
+ ],
+ "collection": "sentinel-2-c1-l2a",
+ "completed_at": "2026-11-09T08:33:39.851623Z",
+ "created_at": "2026-11-09T08:33:39.232008Z",
+ "evidence": [
+  {
+   "event_label": 1,
+   "evidence_id": "ev_19b2e17a84904efd82755be83d8a074e",
+   "index": null,
+   "kind": "change_event",
+   "limitations": [
+    {
+     "blocking": false,
+     "code": "thresholds_untuned"
+    }
+   ],
+   "period": null
+  },
+  {
+   "event_label": 2,
+   "evidence_id": "ev_fff93826927d431190b1192a068b782b",
+   "index": null,
+   "kind": "change_event",
+   "limitations": [
+    {
+     "blocking": false,
+     "code": "thresholds_untuned"
+    }
+   ],
+   "period": null
+  },
+  {
+   "event_label": 3,
+   "evidence_id": "ev_b95c5eb6eef24cceb459e1631d79e6d2",
+   "index": null,
+   "kind": "change_event",
+   "limitations": [
+    {
+     "blocking": false,
+     "code": "thresholds_untuned"
+    }
+   ],
+   "period": null
+  },
+  {
+   "event_label": null,
+   "evidence_id": "ev_9fa1cbafcdca4a69b849c9d5bcf87a71",
+   "index": null,
+   "kind": "change_summary",
+   "limitations": [
+    {
+     "blocking": false,
+     "code": "thresholds_untuned"
+    }
+   ],
+   "period": null
+  },
+  {
+   "event_label": null,
+   "evidence_id": "ev_8cab9dc89c0a47ee83d9d79fe0a82f03",
+   "index": null,
+   "kind": "coregistration_check",
+   "limitations": [],
+   "period": null
+  },
+  {
+   "event_label": null,
+   "evidence_id": "ev_50a0f52742e8432e8f02a4d665e97e14",
+   "index": null,
+   "kind": "coverage_statistic",
+   "limitations": [
+    {
+     "blocking": false,
+     "code": "scl_bright_surface_confusion"
+    },
+    {
+     "blocking": false,
+     "code": "scl_thin_cloud_omission"
+    }
+   ],
+   "period": null
+  },
+  {
+   "event_label": null,
+   "evidence_id": "ev_477bf2c472fa41eb87797f7a2a6686f0",
+   "index": "mndwi",
+   "kind": "index_statistic",
+   "limitations": [
+    {
+     "blocking": false,
+     "code": "scl_bright_surface_confusion"
+    },
+    {
+     "blocking": false,
+     "code": "scl_thin_cloud_omission"
+    },
+    {
+     "blocking": false,
+     "code": "index_resolution_20m"
+    }
+   ],
+   "period": "a"
+  },
+  {
+   "event_label": null,
+   "evidence_id": "ev_50c607987c6142ed87121e5a4817eca9",
+   "index": "mndwi",
+   "kind": "index_statistic",
+   "limitations": [
+    {
+     "blocking": false,
+     "code": "scl_bright_surface_confusion"
+    },
+    {
+     "blocking": false,
+     "code": "scl_thin_cloud_omission"
+    },
+    {
+     "blocking": false,
+     "code": "index_resolution_20m"
+    }
+   ],
+   "period": "b"
+  },
+  {
+   "event_label": null,
+   "evidence_id": "ev_8aae476c41034cc8b29f29a174581941",
+   "index": "mndwi",
+   "kind": "index_statistic",
+   "limitations": [
+    {
+     "blocking": false,
+     "code": "scl_bright_surface_confusion"
+    },
+    {
+     "blocking": false,
+     "code": "scl_thin_cloud_omission"
+    },
+    {
+     "blocking": false,
+     "code": "index_resolution_20m"
+    }
+   ],
+   "period": "delta"
+  },
+  {
+   "event_label": null,
+   "evidence_id": "ev_47e5f22d00704f41838611caef9265d6",
+   "index": "ndbi",
+   "kind": "index_statistic",
+   "limitations": [
+    {
+     "blocking": false,
+     "code": "scl_bright_surface_confusion"
+    },
+    {
+     "blocking": false,
+     "code": "scl_thin_cloud_omission"
+    },
+    {
+     "blocking": false,
+     "code": "index_resolution_20m"
+    },
+    {
+     "blocking": false,
+     "code": "ndbi_not_builtup_detector"
+    }
+   ],
+   "period": "a"
+  },
+  {
+   "event_label": null,
+   "evidence_id": "ev_9e54a662dd524962b5f5abdfdc36eb25",
+   "index": "ndbi",
+   "kind": "index_statistic",
+   "limitations": [
+    {
+     "blocking": false,
+     "code": "scl_bright_surface_confusion"
+    },
+    {
+     "blocking": false,
+     "code": "scl_thin_cloud_omission"
+    },
+    {
+     "blocking": false,
+     "code": "index_resolution_20m"
+    },
+    {
+     "blocking": false,
+     "code": "ndbi_not_builtup_detector"
+    }
+   ],
+   "period": "b"
+  },
+  {
+   "event_label": null,
+   "evidence_id": "ev_65e45e2d6512474ca110514c11f8fec7",
+   "index": "ndbi",
+   "kind": "index_statistic",
+   "limitations": [
+    {
+     "blocking": false,
+     "code": "scl_bright_surface_confusion"
+    },
+    {
+     "blocking": false,
+     "code": "scl_thin_cloud_omission"
+    },
+    {
+     "blocking": false,
+     "code": "index_resolution_20m"
+    },
+    {
+     "blocking": false,
+     "code": "ndbi_not_builtup_detector"
+    }
+   ],
+   "period": "delta"
+  },
+  {
+   "event_label": null,
+   "evidence_id": "ev_97537ed2dca94b95a6d2213da25d592a",
+   "index": "ndvi",
+   "kind": "index_statistic",
+   "limitations": [
+    {
+     "blocking": false,
+     "code": "scl_bright_surface_confusion"
+    },
+    {
+     "blocking": false,
+     "code": "scl_thin_cloud_omission"
+    }
+   ],
+   "period": "a"
+  },
+  {
+   "event_label": null,
+   "evidence_id": "ev_c45c0e5cf5234f7cb9388bd5b0e845d3",
+   "index": "ndvi",
+   "kind": "index_statistic",
+   "limitations": [
+    {
+     "blocking": false,
+     "code": "scl_bright_surface_confusion"
+    },
+    {
+     "blocking": false,
+     "code": "scl_thin_cloud_omission"
+    }
+   ],
+   "period": "b"
+  },
+  {
+   "event_label": null,
+   "evidence_id": "ev_7d9545750cfa48d8ada5d94c5fcd8f8a",
+   "index": "ndvi",
+   "kind": "index_statistic",
+   "limitations": [
+    {
+     "blocking": false,
+     "code": "scl_bright_surface_confusion"
+    },
+    {
+     "blocking": false,
+     "code": "scl_thin_cloud_omission"
+    }
+   ],
+   "period": "delta"
+  },
+  {
+   "event_label": null,
+   "evidence_id": "ev_025c3b2e0e0645b2b5106885d8e53e43",
+   "index": "ndwi",
+   "kind": "index_statistic",
+   "limitations": [
+    {
+     "blocking": false,
+     "code": "scl_bright_surface_confusion"
+    },
+    {
+     "blocking": false,
+     "code": "scl_thin_cloud_omission"
+    }
+   ],
+   "period": "a"
+  },
+  {
+   "event_label": null,
+   "evidence_id": "ev_f19f9968bbf54d76bcee5b550ff21d4f",
+   "index": "ndwi",
+   "kind": "index_statistic",
+   "limitations": [
+    {
+     "blocking": false,
+     "code": "scl_bright_surface_confusion"
+    },
+    {
+     "blocking": false,
+     "code": "scl_thin_cloud_omission"
+    }
+   ],
+   "period": "b"
+  }
+ ],
+ "grid_hash": "53f4848b1dafd4a365ed314edb713635f650d27d6dec0425c2a6c3be38d93985",
+ "id": "9b7f2fe9-fc4f-4564-be8c-6d3f3d279911",
+ "inputs": [
+  {
+   "acquired_at": "2023-06-10T18:58:21Z",
+   "datatake_id": "GS2B_20230610T184919_037900_N05.10",
+   "item_id": "S2B_10SFH_20230610_0_L2A",
+   "platform": "sentinel-2b",
+   "processing_baseline": "05.10",
+   "reason_code": null,
+   "status": "used"
+  },
+  {
+   "acquired_at": "2023-06-11T18:58:21Z",
+   "datatake_id": "GS2B_20230611T184919_037901_N05.10",
+   "item_id": "S2B_10SFH_20230611_0_L2A",
+   "platform": "sentinel-2b",
+   "processing_baseline": "05.10",
+   "reason_code": null,
+   "status": "used"
+  },
+  {
+   "acquired_at": "2023-06-12T18:58:21Z",
+   "datatake_id": "GS2B_20230612T184919_037902_N05.10",
+   "item_id": "S2B_10SFH_20230612_0_L2A",
+   "platform": "sentinel-2b",
+   "processing_baseline": "05.10",
+   "reason_code": null,
+   "status": "used"
+  },
+  {
+   "acquired_at": "2023-06-13T18:58:21Z",
+   "datatake_id": "GS2B_20230613T184919_037903_N05.10",
+   "item_id": "S2B_10SFH_20230613_0_L2A",
+   "platform": "sentinel-2b",
+   "processing_baseline": "05.10",
+   "reason_code": null,
+   "status": "used"
+  },
+  {
+   "acquired_at": "2023-06-14T18:58:21Z",
+   "datatake_id": "GS2B_20230614T184919_037904_N05.10",
+   "item_id": "S2B_10SFH_20230614_0_L2A",
+   "platform": "sentinel-2b",
+   "processing_baseline": "05.10",
+   "reason_code": null,
+   "status": "used"
+  },
+  {
+   "acquired_at": "2023-06-15T18:58:21Z",
+   "datatake_id": "GS2B_20230615T184919_037905_N05.10",
+   "item_id": "S2B_10SFH_20230615_0_L2A",
+   "platform": "sentinel-2b",
+   "processing_baseline": "05.10",
+   "reason_code": null,
+   "status": "used"
+  },
+  {
+   "acquired_at": "2024-06-10T18:58:21Z",
+   "datatake_id": "GS2B_20240610T184919_037900_N05.10",
+   "item_id": "S2B_10SFH_20240610_0_L2A",
+   "platform": "sentinel-2b",
+   "processing_baseline": "05.10",
+   "reason_code": null,
+   "status": "used"
+  },
+  {
+   "acquired_at": "2024-06-11T18:58:21Z",
+   "datatake_id": "GS2B_20240611T184919_037901_N05.10",
+   "item_id": "S2B_10SFH_20240611_0_L2A",
+   "platform": "sentinel-2b",
+   "processing_baseline": "05.10",
+   "reason_code": null,
+   "status": "used"
+  },
+  {
+   "acquired_at": "2024-06-12T18:58:21Z",
+   "datatake_id": "GS2B_20240612T184919_037902_N05.10",
+   "item_id": "S2B_10SFH_20240612_0_L2A",
+   "platform": "sentinel-2b",
+   "processing_baseline": "05.10",
+   "reason_code": null,
+   "status": "used"
+  },
+  {
+   "acquired_at": "2024-06-13T18:58:21Z",
+   "datatake_id": "GS2B_20240613T184919_037903_N05.10",
+   "item_id": "S2B_10SFH_20240613_0_L2A",
+   "platform": "sentinel-2b",
+   "processing_baseline": "05.10",
+   "reason_code": null,
+   "status": "used"
+  },
+  {
+   "acquired_at": "2024-06-14T18:58:21Z",
+   "datatake_id": "GS2B_20240614T184919_037904_N05.10",
+   "item_id": "S2B_10SFH_20240614_0_L2A",
+   "platform": "sentinel-2b",
+   "processing_baseline": "05.10",
+   "reason_code": null,
+   "status": "used"
+  },
+  {
+   "acquired_at": "2024-06-15T18:58:21Z",
+   "datatake_id": "GS2B_20240615T184919_037905_N05.10",
+   "item_id": "S2B_10SFH_20240615_0_L2A",
+   "platform": "sentinel-2b",
+   "processing_baseline": "05.10",
+   "reason_code": null,
+   "status": "used"
+  }
+ ],
+ "job": {
+  "analysis_run_id": "9b7f2fe9-fc4f-4564-be8c-6d3f3d279911",
+  "attempts": 1,
+  "error": null,
+  "finished_at": "2026-11-09T08:33:39.851623Z",
+  "id": "3c587e97-f4e9-4b63-ad8a-f5e4eaf6282a",
+  "kind": "analysis_run",
+  "max_attempts": 3,
+  "progress": 1.0,
+  "queued_at": "2026-11-09T08:33:39.232008Z",
+  "stage": "done",
+  "started_at": "2026-11-09T08:33:39.235452Z",
+  "status": "succeeded"
+ },
+ "job_id": "3c587e97-f4e9-4b63-ad8a-f5e4eaf6282a",
+ "outcome": "completed",
+ "parameters": {
+  "a_MNDWI": 0.2,
+  "a_NDBI": 0.1,
+  "a_NDVI": 0.15,
+  "band_higher_max_coreg_residual_px": 0.3,
+  "band_higher_min_strength": 5.0,
+  "band_higher_min_support": 6,
+  "band_moderate_min_strength": 3.5,
+  "band_moderate_min_support": 4,
+  "coreg_max_residual_px": 0.5,
+  "coreg_min_grid_fraction": 0.5,
+  "coreg_min_window_px": 256,
+  "coverage_thresholds": [
+   0.5,
+   0.8
+  ],
+  "indices": [
+   "mndwi",
+   "ndbi",
+   "ndvi",
+   "ndwi"
+  ],
+  "k": 3.0,
+  "mask_profile": "mask.scl.v1",
+  "max_tile_cloud": 80.0,
+  "mmu_m2": 5000,
+  "n_min": 3,
+  "stats_min_support_fraction": 0.5,
+  "upsample_factor": 10,
+  "widespread_frac": 0.3,
+  "widespread_z": 2.0
+ },
+ "period_b_end": "2024-07-15",
+ "period_b_start": "2024-06-01",
+ "period_end": "2023-07-15",
+ "period_start": "2023-06-01",
+ "project_id": "6fd41b9a-872d-433b-b9cc-b54ed76b8412",
+ "status": "succeeded",
+ "type": "change"
+}

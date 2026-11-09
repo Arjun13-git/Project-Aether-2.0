@@ -1,0 +1,11 @@
+{
+ "body": {
+  "error": {
+   "code": "analysis_type_invalid",
+   "details": {},
+   "message": "change events exist only for change analyses",
+   "request_id": "0e7817a43d044c9794bd8c14f6727dd9"
+  }
+ },
+ "status": 422
+}

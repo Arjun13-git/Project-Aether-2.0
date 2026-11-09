@@ -1,0 +1,488 @@
+[
+ {
+  "artifact_id": "40881081-f768-48cf-9e54-d0f860c7312b",
+  "grid": "G10",
+  "kind": "composite",
+  "legend": {
+   "note": "display composite (per-band median); not a measurement",
+   "range": [
+    0.0,
+    0.3
+   ],
+   "stretch": "linear",
+   "type": "rgb",
+   "unit": "BOA reflectance"
+  },
+  "name": "true_colour",
+  "period": "a",
+  "render": "rgb",
+  "resolution_m": 10.0,
+  "sha256": "5f2836b55213d0706949b97c730ee30120298a04f0ed912242da0b8a1ddb8f02",
+  "tile_url": "/api/v1/tiles/40881081-f768-48cf-9e54-d0f860c7312b/{z}/{x}/{y}.png?render_name=rgb"
+ },
+ {
+  "artifact_id": "8d879f29-3742-4600-9792-270961bb59fe",
+  "grid": "G10",
+  "kind": "composite",
+  "legend": {
+   "note": "display composite (per-band median); not a measurement",
+   "range": [
+    0.0,
+    0.3
+   ],
+   "stretch": "linear",
+   "type": "rgb",
+   "unit": "BOA reflectance"
+  },
+  "name": "true_colour",
+  "period": "b",
+  "render": "rgb",
+  "resolution_m": 10.0,
+  "sha256": "0371601b23ead3ca28ea74352c4089c6ec04e9fef541b73522df6ffa8afaa2e5",
+  "tile_url": "/api/v1/tiles/8d879f29-3742-4600-9792-270961bb59fe/{z}/{x}/{y}.png?render_name=rgb"
+ },
+ {
+  "artifact_id": "74fab9b5-8b3e-4c6f-921d-d4fa0f75ff1a",
+  "grid": "G10",
+  "kind": "category",
+  "legend": {
+   "classes": [
+    {
+     "category": "water_increase",
+     "code": 1,
+     "colour": "#0072B2"
+    },
+    {
+     "category": "water_decrease",
+     "code": 2,
+     "colour": "#56B4E9"
+    },
+    {
+     "category": "built_bare_increase",
+     "code": 3,
+     "colour": "#E69F00"
+    },
+    {
+     "category": "veg_loss",
+     "code": 4,
+     "colour": "#D55E00"
+    },
+    {
+     "category": "veg_gain",
+     "code": 5,
+     "colour": "#009E73"
+    },
+    {
+     "category": "other_significant",
+     "code": 6,
+     "colour": "#CC79A7"
+    }
+   ],
+   "note": "typical-correlate label of an index change, not land-cover truth",
+   "type": "categorical"
+  },
+  "name": "category",
+  "period": "delta",
+  "render": "category",
+  "resolution_m": 10.0,
+  "sha256": "805123d7eceec1d045392ecfb0dea46ff9c3d24d350ebdfb8085d83a1516a730",
+  "tile_url": "/api/v1/tiles/74fab9b5-8b3e-4c6f-921d-d4fa0f75ff1a/{z}/{x}/{y}.png?render_name=category"
+ },
+ {
+  "artifact_id": "5ebbb63e-a59f-4b74-b10f-a52ea1453ad4",
+  "grid": "G20",
+  "kind": "delta",
+  "legend": {
+   "centre": 0,
+   "colormap": "rdbu",
+   "index": "mndwi",
+   "note": "\u0394 = B \u2212 A \u00b7 positive = index increased",
+   "range": [
+    -0.5,
+    0.5
+   ],
+   "type": "diverging",
+   "unit": "index difference (dimensionless)"
+  },
+  "name": "delta:mndwi",
+  "period": "delta",
+  "render": "delta:mndwi",
+  "resolution_m": 20.0,
+  "sha256": "9b4e8b2bdfe4db40b04db116d992a3a5ddcc68a173ff8d69d504771c5892291c",
+  "tile_url": "/api/v1/tiles/5ebbb63e-a59f-4b74-b10f-a52ea1453ad4/{z}/{x}/{y}.png?render_name=delta:mndwi"
+ },
+ {
+  "artifact_id": "912c2f65-6427-458c-afb1-b094b3f82ad1",
+  "grid": "G20",
+  "kind": "delta",
+  "legend": {
+   "centre": 0,
+   "colormap": "puor",
+   "index": "ndbi",
+   "note": "\u0394 = B \u2212 A \u00b7 positive = index increased",
+   "range": [
+    -0.5,
+    0.5
+   ],
+   "type": "diverging",
+   "unit": "index difference (dimensionless)"
+  },
+  "name": "delta:ndbi",
+  "period": "delta",
+  "render": "delta:ndbi",
+  "resolution_m": 20.0,
+  "sha256": "67ae615bc17b677295b7f303d40b48c95c5529e98486230d13cf2e3668cbc26a",
+  "tile_url": "/api/v1/tiles/912c2f65-6427-458c-afb1-b094b3f82ad1/{z}/{x}/{y}.png?render_name=delta:ndbi"
+ },
+ {
+  "artifact_id": "ffd2bdbb-4ea9-4625-a7a4-c84126540d8b",
+  "grid": "G10",
+  "kind": "delta",
+  "legend": {
+   "centre": 0,
+   "colormap": "brbg",
+   "index": "ndvi",
+   "note": "\u0394 = B \u2212 A \u00b7 positive = index increased",
+   "range": [
+    -0.5,
+    0.5
+   ],
+   "type": "diverging",
+   "unit": "index difference (dimensionless)"
+  },
+  "name": "delta:ndvi",
+  "period": "delta",
+  "render": "delta:ndvi",
+  "resolution_m": 10.0,
+  "sha256": "f751a36cad81ccdf43fe0921b02fbb5cfe6432e6ad7c8cb582cc3561dfa39292",
+  "tile_url": "/api/v1/tiles/ffd2bdbb-4ea9-4625-a7a4-c84126540d8b/{z}/{x}/{y}.png?render_name=delta:ndvi"
+ },
+ {
+  "artifact_id": "2516e1dd-6351-439f-8b2c-0290167c7a24",
+  "grid": "G20",
+  "kind": "index",
+  "legend": {
+   "colormap": "rdbu",
+   "index": "mndwi",
+   "range": [
+    -1,
+    1
+   ],
+   "type": "diverging",
+   "unit": "index (dimensionless)"
+  },
+  "name": "index:mndwi",
+  "period": "a",
+  "render": "index:mndwi",
+  "resolution_m": 20.0,
+  "sha256": "43b03d8623b82509ccf4e40c49024b09dbb01cb11635098c31da870b792b34b8",
+  "tile_url": "/api/v1/tiles/2516e1dd-6351-439f-8b2c-0290167c7a24/{z}/{x}/{y}.png?render_name=index:mndwi"
+ },
+ {
+  "artifact_id": "75098744-6030-40b0-be64-4cf1b0c94675",
+  "grid": "G20",
+  "kind": "index",
+  "legend": {
+   "colormap": "rdbu",
+   "index": "mndwi",
+   "range": [
+    -1,
+    1
+   ],
+   "type": "diverging",
+   "unit": "index (dimensionless)"
+  },
+  "name": "index:mndwi",
+  "period": "b",
+  "render": "index:mndwi",
+  "resolution_m": 20.0,
+  "sha256": "1f533725e5131c71b3134dfb8bf3ba04eacef1e54f6cf5536a6df9a4affa475a",
+  "tile_url": "/api/v1/tiles/75098744-6030-40b0-be64-4cf1b0c94675/{z}/{x}/{y}.png?render_name=index:mndwi"
+ },
+ {
+  "artifact_id": "78f228d5-6888-40c6-a1cc-277e98e77a6b",
+  "grid": "G20",
+  "kind": "index",
+  "legend": {
+   "colormap": "puor",
+   "index": "ndbi",
+   "range": [
+    -1,
+    1
+   ],
+   "type": "diverging",
+   "unit": "index (dimensionless)"
+  },
+  "name": "index:ndbi",
+  "period": "a",
+  "render": "index:ndbi",
+  "resolution_m": 20.0,
+  "sha256": "df83834799575565d39a02cb8f7ac0f5c83e8995a527b2b6f1092eda72f19922",
+  "tile_url": "/api/v1/tiles/78f228d5-6888-40c6-a1cc-277e98e77a6b/{z}/{x}/{y}.png?render_name=index:ndbi"
+ },
+ {
+  "artifact_id": "2c323e0e-f7ee-4c1a-b85c-6644bff0552e",
+  "grid": "G20",
+  "kind": "index",
+  "legend": {
+   "colormap": "puor",
+   "index": "ndbi",
+   "range": [
+    -1,
+    1
+   ],
+   "type": "diverging",
+   "unit": "index (dimensionless)"
+  },
+  "name": "index:ndbi",
+  "period": "b",
+  "render": "index:ndbi",
+  "resolution_m": 20.0,
+  "sha256": "78736b643e99b5ec2859b07f029a2b48c4cf509aa8ff80bbc768af14f7e89a47",
+  "tile_url": "/api/v1/tiles/2c323e0e-f7ee-4c1a-b85c-6644bff0552e/{z}/{x}/{y}.png?render_name=index:ndbi"
+ },
+ {
+  "artifact_id": "f7c770f9-f2b3-4a69-83b8-f8a9d85c1111",
+  "grid": "G10",
+  "kind": "index",
+  "legend": {
+   "colormap": "brbg",
+   "index": "ndvi",
+   "range": [
+    -1,
+    1
+   ],
+   "type": "diverging",
+   "unit": "index (dimensionless)"
+  },
+  "name": "index:ndvi",
+  "period": "b",
+  "render": "index:ndvi",
+  "resolution_m": 10.0,
+  "sha256": "e57a7f025c3cf6e98d46188eac2d2f26d147a9640d07dfc8f8ccd4ac6e1765bc",
+  "tile_url": "/api/v1/tiles/f7c770f9-f2b3-4a69-83b8-f8a9d85c1111/{z}/{x}/{y}.png?render_name=index:ndvi"
+ },
+ {
+  "artifact_id": "7ac79964-2a8e-479a-be82-5e9af115a653",
+  "grid": "G10",
+  "kind": "index",
+  "legend": {
+   "colormap": "brbg",
+   "index": "ndvi",
+   "range": [
+    -1,
+    1
+   ],
+   "type": "diverging",
+   "unit": "index (dimensionless)"
+  },
+  "name": "index:ndvi",
+  "period": "a",
+  "render": "index:ndvi",
+  "resolution_m": 10.0,
+  "sha256": "1ccc9642ff9cd637c71ac74cc46e800417dbe36c7ee45969cfec24802e11e5f2",
+  "tile_url": "/api/v1/tiles/7ac79964-2a8e-479a-be82-5e9af115a653/{z}/{x}/{y}.png?render_name=index:ndvi"
+ },
+ {
+  "artifact_id": "f009f67d-86c9-4e67-8fe0-c2eb50694e91",
+  "grid": "G10",
+  "kind": "index",
+  "legend": {
+   "colormap": "rdbu",
+   "index": "ndwi",
+   "range": [
+    -1,
+    1
+   ],
+   "type": "diverging",
+   "unit": "index (dimensionless)"
+  },
+  "name": "index:ndwi",
+  "period": "b",
+  "render": "index:ndwi",
+  "resolution_m": 10.0,
+  "sha256": "45e411fc35b678f525cd630109fca8c7d6f94f07041a43dddc5b90b48099db7a",
+  "tile_url": "/api/v1/tiles/f009f67d-86c9-4e67-8fe0-c2eb50694e91/{z}/{x}/{y}.png?render_name=index:ndwi"
+ },
+ {
+  "artifact_id": "cdf38a01-e38f-415d-832b-db1aa0961d13",
+  "grid": "G10",
+  "kind": "index",
+  "legend": {
+   "colormap": "rdbu",
+   "index": "ndwi",
+   "range": [
+    -1,
+    1
+   ],
+   "type": "diverging",
+   "unit": "index (dimensionless)"
+  },
+  "name": "index:ndwi",
+  "period": "a",
+  "render": "index:ndwi",
+  "resolution_m": 10.0,
+  "sha256": "c7d74ce491924f8cfbd049e286d14092e2229db3e0c2c4354bb9a1de3a75b546",
+  "tile_url": "/api/v1/tiles/cdf38a01-e38f-415d-832b-db1aa0961d13/{z}/{x}/{y}.png?render_name=index:ndwi"
+ },
+ {
+  "artifact_id": "013d163f-f290-48b4-8f19-890e5b52d7d5",
+  "grid": "G10",
+  "kind": "joint_valid",
+  "legend": {
+   "colour": "#7f7f7f",
+   "meaning": "not compared: outside the AOI or not valid in both periods",
+   "type": "mask"
+  },
+  "name": "not_compared",
+  "period": "delta",
+  "render": "not_compared",
+  "resolution_m": 10.0,
+  "sha256": "fae1a8b4c0f925489e26e739e16714701de8c5c93a52148ab13546080ba859eb",
+  "tile_url": "/api/v1/tiles/013d163f-f290-48b4-8f19-890e5b52d7d5/{z}/{x}/{y}.png?render_name=not_compared"
+ },
+ {
+  "artifact_id": "90608644-910a-4fd5-bec5-b742df793d40",
+  "grid": "G20",
+  "kind": "n_valid",
+  "legend": {
+   "colormap": "viridis",
+   "range": [
+    0,
+    30
+   ],
+   "type": "sequential",
+   "unit": "observations"
+  },
+  "name": "n_valid:mndwi",
+  "period": null,
+  "render": "n_valid",
+  "resolution_m": 20.0,
+  "sha256": "5a4f8cbff24e256e87bde6805e2c40afbd4c295671408c8bc10e37b3e38f9fd8",
+  "tile_url": "/api/v1/tiles/90608644-910a-4fd5-bec5-b742df793d40/{z}/{x}/{y}.png?render_name=n_valid"
+ },
+ {
+  "artifact_id": "90608644-910a-4fd5-bec5-b742df793d40",
+  "grid": "G20",
+  "kind": "n_valid",
+  "legend": {
+   "colour": "#7f7f7f",
+   "meaning": "no reliable data: n_valid < n_min (3)",
+   "type": "mask"
+  },
+  "name": "insufficient:mndwi",
+  "period": null,
+  "render": "insufficient",
+  "resolution_m": 20.0,
+  "sha256": "5a4f8cbff24e256e87bde6805e2c40afbd4c295671408c8bc10e37b3e38f9fd8",
+  "tile_url": "/api/v1/tiles/90608644-910a-4fd5-bec5-b742df793d40/{z}/{x}/{y}.png?render_name=insufficient"
+ },
+ {
+  "artifact_id": "8de1533c-7806-4fea-a788-3502c8eb17cc",
+  "grid": "G20",
+  "kind": "n_valid",
+  "legend": {
+   "colormap": "viridis",
+   "range": [
+    0,
+    30
+   ],
+   "type": "sequential",
+   "unit": "observations"
+  },
+  "name": "n_valid:ndbi",
+  "period": null,
+  "render": "n_valid",
+  "resolution_m": 20.0,
+  "sha256": "b3cd21dd7175ab3a3e04c87b5299260feb7171aba2627fc9fe2c4200f7355cf6",
+  "tile_url": "/api/v1/tiles/8de1533c-7806-4fea-a788-3502c8eb17cc/{z}/{x}/{y}.png?render_name=n_valid"
+ },
+ {
+  "artifact_id": "8de1533c-7806-4fea-a788-3502c8eb17cc",
+  "grid": "G20",
+  "kind": "n_valid",
+  "legend": {
+   "colour": "#7f7f7f",
+   "meaning": "no reliable data: n_valid < n_min (3)",
+   "type": "mask"
+  },
+  "name": "insufficient:ndbi",
+  "period": null,
+  "render": "insufficient",
+  "resolution_m": 20.0,
+  "sha256": "b3cd21dd7175ab3a3e04c87b5299260feb7171aba2627fc9fe2c4200f7355cf6",
+  "tile_url": "/api/v1/tiles/8de1533c-7806-4fea-a788-3502c8eb17cc/{z}/{x}/{y}.png?render_name=insufficient"
+ },
+ {
+  "artifact_id": "0669508c-3662-4336-b289-117f262fd9a6",
+  "grid": "G10",
+  "kind": "n_valid",
+  "legend": {
+   "colormap": "viridis",
+   "range": [
+    0,
+    30
+   ],
+   "type": "sequential",
+   "unit": "observations"
+  },
+  "name": "n_valid:ndvi",
+  "period": null,
+  "render": "n_valid",
+  "resolution_m": 10.0,
+  "sha256": "ef85a8ac58a621a322d1f9d0ab9107318aa6bc4653b8d486088e1cea6757745a",
+  "tile_url": "/api/v1/tiles/0669508c-3662-4336-b289-117f262fd9a6/{z}/{x}/{y}.png?render_name=n_valid"
+ },
+ {
+  "artifact_id": "0669508c-3662-4336-b289-117f262fd9a6",
+  "grid": "G10",
+  "kind": "n_valid",
+  "legend": {
+   "colour": "#7f7f7f",
+   "meaning": "no reliable data: n_valid < n_min (3)",
+   "type": "mask"
+  },
+  "name": "insufficient:ndvi",
+  "period": null,
+  "render": "insufficient",
+  "resolution_m": 10.0,
+  "sha256": "ef85a8ac58a621a322d1f9d0ab9107318aa6bc4653b8d486088e1cea6757745a",
+  "tile_url": "/api/v1/tiles/0669508c-3662-4336-b289-117f262fd9a6/{z}/{x}/{y}.png?render_name=insufficient"
+ },
+ {
+  "artifact_id": "b91ec378-01de-42a5-a6e8-9b4227752d02",
+  "grid": "G10",
+  "kind": "n_valid",
+  "legend": {
+   "colormap": "viridis",
+   "range": [
+    0,
+    30
+   ],
+   "type": "sequential",
+   "unit": "observations"
+  },
+  "name": "n_valid:ndwi",
+  "period": null,
+  "render": "n_valid",
+  "resolution_m": 10.0,
+  "sha256": "e84dac05e95c1a22c069427d9e3ace66e0f90d602cdbd9cc914f9e9f7b0577ef",
+  "tile_url": "/api/v1/tiles/b91ec378-01de-42a5-a6e8-9b4227752d02/{z}/{x}/{y}.png?render_name=n_valid"
+ },
+ {
+  "artifact_id": "b91ec378-01de-42a5-a6e8-9b4227752d02",
+  "grid": "G10",
+  "kind": "n_valid",
+  "legend": {
+   "colour": "#7f7f7f",
+   "meaning": "no reliable data: n_valid < n_min (3)",
+   "type": "mask"
+  },
+  "name": "insufficient:ndwi",
+  "period": null,
+  "render": "insufficient",
+  "resolution_m": 10.0,
+  "sha256": "e84dac05e95c1a22c069427d9e3ace66e0f90d602cdbd9cc914f9e9f7b0577ef",
+  "tile_url": "/api/v1/tiles/b91ec378-01de-42a5-a6e8-9b4227752d02/{z}/{x}/{y}.png?render_name=insufficient"
+ }
+]

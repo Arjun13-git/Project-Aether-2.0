@@ -1,0 +1,108 @@
+{
+ "coregistration_assessable_by_extent": true,
+ "coregistration_note": "The analysis grid supports the 256 \u00d7 256 px co-registration window; whether registration is verified also depends on jointly valid pixels, decided in the job (C3 \u00a79).",
+ "grid": {
+  "G10": {
+   "bounds": [
+    607640.0,
+    4264640.0,
+    610360.0,
+    4267360.0
+   ],
+   "epsg": 32610,
+   "grid_hash": "53f4848b1dafd4a365ed314edb713635f650d27d6dec0425c2a6c3be38d93985",
+   "height": 272,
+   "name": "G10",
+   "res_m": 10,
+   "transform": [
+    10.0,
+    0.0,
+    607640.0,
+    0.0,
+    -10.0,
+    4267360.0
+   ],
+   "version": "grid.utm_s2.v1",
+   "width": 272
+  },
+  "G20": {
+   "bounds": [
+    607640.0,
+    4264640.0,
+    610360.0,
+    4267360.0
+   ],
+   "epsg": 32610,
+   "grid_hash": "53f4848b1dafd4a365ed314edb713635f650d27d6dec0425c2a6c3be38d93985",
+   "height": 136,
+   "name": "G20",
+   "res_m": 20,
+   "transform": [
+    20.0,
+    0.0,
+    607640.0,
+    0.0,
+    -20.0,
+    4267360.0
+   ],
+   "version": "grid.utm_s2.v1",
+   "width": 136
+  }
+ },
+ "n_min": 3,
+ "note": "eligibility is STAC-level; read-time checks, AOI joint coverage and registration support are determined from pixels in the job",
+ "outcome_order": [
+  "insufficient_observations",
+  "insufficient_coverage",
+  "coregistration_failed"
+ ],
+ "pair_rules": "passed",
+ "periods": {
+  "a": {
+   "days": 45,
+   "end": "2023-07-15",
+   "items_considered": 6,
+   "observations_eligible": 6,
+   "start": "2023-06-01",
+   "sufficient_observations_possible": true
+  },
+  "b": {
+   "days": 45,
+   "end": "2024-07-15",
+   "items_considered": 6,
+   "observations_eligible": 6,
+   "start": "2024-06-01",
+   "sufficient_observations_possible": true
+  }
+ },
+ "scenes": {
+  "a": [
+   {
+    "acquired_at": "2023-06-10T18:58:21+00:00",
+    "datatake_id": "GS2B_20230610T184919_037900_N05.10",
+    "grid_code": "MGRS-10SFH",
+    "item_id": "S2B_10SFH_20230610_0_L2A",
+    "metadata_evidence": null,
+    "platform": "sentinel-2b",
+    "processing_baseline": "05.10",
+    "reason_code": null,
+    "status": "used"
+   }
+  ],
+  "b": [
+   {
+    "acquired_at": "2024-06-10T18:58:21+00:00",
+    "datatake_id": "GS2B_20240610T184919_037900_N05.10",
+    "grid_code": "MGRS-10SFH",
+    "item_id": "S2B_10SFH_20240610_0_L2A",
+    "metadata_evidence": null,
+    "platform": "sentinel-2b",
+    "processing_baseline": "05.10",
+    "reason_code": null,
+    "status": "used"
+   }
+  ]
+ },
+ "sufficient_observations_possible": true,
+ "type": "change"
+}
