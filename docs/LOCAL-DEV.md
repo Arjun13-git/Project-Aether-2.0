@@ -75,6 +75,7 @@ cd ../web && pnpm typecheck && pnpm lint && pnpm test
 | `scripts/fixtures/fetch_s2_window.py` | Fetches a ≤ 256 px real window + provenance sidecar into the fixture tree (ADR-023) |
 | `scripts/licence_report.py` | Licence tripwire over the installed Python and web dependencies |
 | `scripts/repro_check.py` | Re-executes persisted **snapshot** runs from their recorded STAC JSON and compares artifact sha256 and statistics (I-12). Change runs are not selected; a change run named explicitly is reported as FAIL (not checked) |
+| `scripts/repro_change_check.py` | Re-executes persisted **change** runs (I-12) from their recorded catalogue response in a read-only transaction, into a throw-away store. Compares identity (parameters, versions, change key, grid), processing steps, inputs, every artifact incl. the GeoPackage, evidence, measurements and change events |
 
 ## Storage layout (`AETHER_STORAGE_ROOT`)
 
