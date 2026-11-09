@@ -1,7 +1,7 @@
 """Reproducibility check (invariant I-12) for a persisted snapshot run.
 
 Usage (from the repo root, API database configured in apps/api/.env):
-  uv run --project apps/api python scripts/repro_check.py [ANALYSIS_RUN_ID ...]   # default: all completed runs
+  uv run --project apps/api python scripts/repro_check.py [ANALYSIS_RUN_ID ...]   # default: all completed snapshot runs
 
 Re-executes each run from its *recorded* inputs, with no new catalogue search:
 - the verbatim STAC JSON stored for its scenes;
@@ -10,6 +10,9 @@ Re-executes each run from its *recorded* inputs, with no new catalogue search:
 Window reads come from the window cache (or the network if evicted). Fresh artifacts are written to
 a throw-away store. The check compares their sha256 and every index statistic with what was
 persisted. Exit code 1 on any difference.
+
+Only snapshot runs are checked. Change runs are never selected by default, and an explicitly named
+change run is reported as FAIL (not checked) instead of being re-executed as a snapshot.
 """
 
 from __future__ import annotations
@@ -34,9 +37,19 @@ from aether.services.snapshot_run import _write_artifacts  # noqa: E402
 from aether.settings import get_settings  # noqa: E402
 from aether.storage.store import LocalFilesystemStore  # noqa: E402
 
+SNAPSHOT_RUNS_SQL = "SELECT id FROM analysis_runs WHERE type='snapshot' AND outcome='completed' ORDER BY created_at"
+
+
+def snapshot_run_ids(conn) -> list:
+    """Default selection: completed snapshot runs only (completed change runs are not snapshots)."""
+    return [r.id for r in conn.execute(text(SNAPSHOT_RUNS_SQL))]
+
 
 def check(conn, run_id) -> bool:
-    run = conn.execute(text("SELECT id, aoi_id, parameters, grid_hash FROM analysis_runs WHERE id=:r"), {"r": run_id}).one()
+    run = conn.execute(text("SELECT id, aoi_id, type, parameters, grid_hash FROM analysis_runs WHERE id=:r"), {"r": run_id}).one()
+    if run.type != "snapshot":
+        print(f"{run_id}  {run.type} run: not a snapshot run; this script does not check it  FAIL")
+        return False
     aoi = repo.get_aoi(conn, run.aoi_id)
     items = [
         r.stac_json
@@ -102,9 +115,7 @@ def check(conn, run_id) -> bool:
 
 def main() -> None:
     with get_engine().connect() as conn:
-        ids = sys.argv[1:] or [
-            r.id for r in conn.execute(text("SELECT id FROM analysis_runs WHERE outcome='completed' ORDER BY created_at"))
-        ]
+        ids = sys.argv[1:] or snapshot_run_ids(conn)
         results = [check(conn, i) for i in ids]
     print(f"reproducibility: {sum(results)}/{len(results)} runs bitwise-identical")
     sys.exit(0 if all(results) else 1)
