@@ -194,6 +194,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/changes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Changes
+         * @description Persisted change events as GeoJSON (EPSG:4326 copy; authoritative geometry = ``geometry_artifact_id``).
+         */
+        get: operations["changes_api_v1_changes_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/analyses/{run_a}/compare/{run_b}": {
         parameters: {
             query?: never;
@@ -327,6 +347,10 @@ export interface components {
              * Format: date
              */
             period_end: string;
+            /** Period B Start */
+            period_b_start?: string | null;
+            /** Period B End */
+            period_b_end?: string | null;
             /** Status */
             status: string;
             /** Outcome */
@@ -367,7 +391,13 @@ export interface components {
                 [key: string]: unknown;
             }[];
         };
-        /** AnalysisIn */
+        /**
+         * AnalysisIn
+         * @description No scientific parameters, collection or threshold fields exist (C5 §9, C-09).
+         *
+         *     Unknown fields are kept (not validated) so snapshot requests behave exactly as in Phase 1, where they
+         *     were ignored (plan §18); change requests reject them (no override can be smuggled in, C-09).
+         */
         AnalysisIn: {
             /**
              * Aoi Id
@@ -382,6 +412,8 @@ export interface components {
             type: "snapshot" | "change";
             period_a: components["schemas"]["PeriodIn"];
             period_b?: components["schemas"]["PeriodIn"] | null;
+        } & {
+            [key: string]: unknown;
         };
         /** AnalysisSubmitted */
         AnalysisSubmitted: {
@@ -421,6 +453,10 @@ export interface components {
              * Format: date
              */
             period_end: string;
+            /** Period B Start */
+            period_b_start?: string | null;
+            /** Period B End */
+            period_b_end?: string | null;
             /** Status */
             status: string;
             /** Outcome */
@@ -516,6 +552,80 @@ export interface components {
             /** Scenes */
             scenes: components["schemas"]["SceneRow"][];
         };
+        /** ChangeEventProperties */
+        ChangeEventProperties: {
+            /** Evidence Id */
+            evidence_id: string;
+            /** Event Label */
+            event_label: number;
+            /**
+             * Category
+             * @enum {string}
+             */
+            category: "water_increase" | "water_decrease" | "built_bare_increase" | "veg_loss" | "veg_gain" | "other_significant";
+            /** Touches Aoi Boundary */
+            touches_aoi_boundary: boolean;
+            /**
+             * Confidence Band
+             * @enum {string}
+             */
+            confidence_band: "higher" | "moderate" | "lower";
+            /** Index Flags */
+            index_flags: {
+                [key: string]: ("-" | "0" | "+")[];
+            };
+            /**
+             * Mode
+             * @enum {string}
+             */
+            mode: "robust" | "absolute_only";
+            /**
+             * Geometry Artifact Id
+             * Format: uuid
+             */
+            geometry_artifact_id: string;
+            /** Limitations */
+            limitations: components["schemas"]["Limitation"][];
+            /** Measurements */
+            measurements: components["schemas"]["Measurement"][];
+        };
+        /** ChangeFeature */
+        ChangeFeature: {
+            /**
+             * Type
+             * @constant
+             */
+            type: "Feature";
+            /** Id */
+            id: number;
+            /**
+             * Geometry
+             * @description EPSG:4326 copy; authoritative UTM geometry is the GeoPackage
+             */
+            geometry: {
+                [key: string]: unknown;
+            };
+            properties: components["schemas"]["ChangeEventProperties"];
+        };
+        /** ChangeFeatureCollection */
+        ChangeFeatureCollection: {
+            /**
+             * Type
+             * @constant
+             */
+            type: "FeatureCollection";
+            /**
+             * Analysis Run Id
+             * Format: uuid
+             */
+            analysis_run_id: string;
+            /** Outcome */
+            outcome: string | null;
+            /** Feature Count */
+            feature_count: number;
+            /** Features */
+            features: components["schemas"]["ChangeFeature"][];
+        };
         /** CompareOut */
         CompareOut: {
             /** Allowed */
@@ -578,6 +688,12 @@ export interface components {
             period_start: string | null;
             /** Period End */
             period_end: string | null;
+            /** Period B Start */
+            period_b_start?: string | null;
+            /** Period B End */
+            period_b_end?: string | null;
+            /** Geometry Artifact Id */
+            geometry_artifact_id?: string | null;
             /** Facts */
             facts: {
                 [key: string]: unknown;
@@ -606,6 +722,10 @@ export interface components {
             kind: string;
             /** Index */
             index: string | null;
+            /** Period */
+            period?: ("a" | "b" | "delta") | null;
+            /** Event Label */
+            event_label?: number | null;
             /** Limitations */
             limitations: {
                 [key: string]: unknown;
@@ -676,6 +796,8 @@ export interface components {
             resolution_m: number;
             /** Sha256 */
             sha256: string;
+            /** Period */
+            period?: ("a" | "b" | "delta") | null;
         };
         /** Limitation */
         Limitation: {
@@ -713,6 +835,8 @@ export interface components {
             n_samples?: number | null;
             /** Region */
             region?: string | null;
+            /** Geometry Evidence Id */
+            geometry_evidence_id?: string | null;
             /** Method */
             method?: string | null;
         };
@@ -1312,6 +1436,57 @@ export interface operations {
             };
             /** @description Not Found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    changes_api_v1_changes_get: {
+        parameters: {
+            query: {
+                analysis_run_id: string;
+                bbox?: string | null;
+                category?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangeFeatureCollection"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };

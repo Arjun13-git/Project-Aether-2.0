@@ -15,6 +15,11 @@ const DENOMINATORS: Record<string, string> = {
   aoi_grid_area: "of the AOI (pixel area)",
   aoi_area: "of the AOI's geodesic area",
   aoi_pixel_observations: "of in-AOI pixel-observations",
+  "aoi_pixel_observations.a": "of Period A in-AOI pixel-observations",
+  "aoi_pixel_observations.b": "of Period B in-AOI pixel-observations",
+  aoi_grid_pixels_10m: "of the AOI's 10 m pixels",
+  grid_pixels_10m: "of the 10 m analysis grid",
+  joint_valid_area: "of the compared area",
 };
 
 export function denominatorLabel(q: string | null | undefined): string {
@@ -39,6 +44,8 @@ export function formatValue(m: Measurement): string {
       return Math.round(v).toLocaleString();
     case "deg":
       return `${v.toFixed(1)}°`;
+    case "px":
+      return `${v.toFixed(2)} px`;
     case "1":
       // STAC eo:cloud_cover is stored as a fraction of the whole MGRS tile (not of the AOI).
       if (m.quantity === "tile_cloud_cover") return `${(v * 100).toFixed(1)} % of tile`;
@@ -63,10 +70,46 @@ export const LABELS: Record<string, string> = {
   items_considered: "STAC items considered",
   items_used: "STAC items used",
   aoi_pixel_observations: "In-AOI pixel-observations",
+  observed_area_b: "Period B: area observed at least once",
+  valid_area_b: "Period B: area with ≥ 3 clear observations",
+  coverage_b: "Period B coverage",
+  joint_valid_area: "Compared area (valid in both periods)",
+  joint_coverage: "Joint coverage",
+  grid_pixels_10m: "Analysis grid pixels (10 m)",
+  coreg_residual: "Co-registration residual",
+  coreg_shift_x: "Co-registration shift x (columns)",
+  coreg_shift_y: "Co-registration shift y (rows)",
+  coreg_pcc_error: "Phase-correlation error (observational)",
+  coreg_window_width: "Registration window width",
+  coreg_window_height: "Registration window height",
+  coreg_grid_joint_valid_fraction: "Registration support (grid)",
+  event_area: "Event area",
+  event_pixel_count: "Event pixels",
+  event_strength: "Event strength (median max |z|)",
+  event_support_a: "Period A support (median n_valid NDVI)",
+  event_support_b: "Period B support (median n_valid NDVI)",
+  eligible_pixels: "Compared pixels",
+  change_event_count: "Change events",
+  changed_area: "Changed area (union of events)",
+  changed_fraction: "Changed fraction",
 };
 
+const PERIOD_PREFIX: Record<string, string> = { a: "Period A", b: "Period B" };
+
 export function label(q: string, statistic: string): string {
-  const [family, qual] = q.split(".");
+  // Per-period change quantities carry a trailing ".a" / ".b" (registry per-period variants).
+  const period = /\.(a|b)$/.exec(q)?.[1];
+  if (period && !(q in LABELS)) return `${PERIOD_PREFIX[period]}: ${label(q.slice(0, -2), statistic)}`;
+  const [family, qual, sub] = q.split(".");
+  if (family === "index_delta") return `Δ ${qual.toUpperCase()} (B − A) ${statistic}`;
+  if (family === "index_delta_pixels") return `Δ ${qual.toUpperCase()} compared pixels`;
+  if (family === "index_delta_support") return `Δ ${qual.toUpperCase()} support`;
+  if (family === "event_median_delta") return `Median Δ ${qual.toUpperCase()} (B − A)`;
+  if (family === "event_flag_pixels") return `${qual.toUpperCase()} pixels with sign ${sub === "positive" ? "+" : "−"}`;
+  if (family === "coreg_qa_nir_std") return "NIR QA σ in window (observational)";
+  if (family === "change_event_count" && qual) return `Change events: ${qual.replaceAll("_", " ")}`;
+  if (family === "changed_area" && qual) return `Changed area: ${qual.replaceAll("_", " ")}`;
+  if (family === "changed_fraction" && qual) return `Changed fraction: ${qual.replaceAll("_", " ")}`;
   if (family === "index") return `${qual.toUpperCase()} ${statistic}`;
   if (family === "index_pixels") return `${qual.toUpperCase()} defined pixels`;
   if (family === "index_region_pixels") return `${qual.toUpperCase()} AOI pixels`;
