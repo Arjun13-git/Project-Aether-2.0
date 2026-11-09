@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Aether — EO snapshot workbench",
-  description: "Evidence-first Earth-observation snapshot analysis (Phase 1)",
+  title: "Aether — EO workbench",
+  description: "Evidence-first Earth-observation snapshot and two-period change analysis",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

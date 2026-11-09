@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import ChangePanel from "./ChangePanel";
 import EvidencePanel from "./EvidencePanel";
 import type { DrawMode } from "./MapView";
 import {
@@ -11,10 +12,23 @@ import {
   type AnalysisDetail,
   type AnalysisSummary,
   type CatalogSearchOut,
+  type ChangeFeatureCollection,
+  type ChangePreflight,
   type Job,
   type Layer,
   type Project,
 } from "@/lib/api";
+import {
+  categoryColours,
+  ERROR_PREFIX,
+  errorKind,
+  layerKey,
+  layerLabel,
+  periodRange,
+  PERIOD_LABEL,
+  PREFLIGHT_DISCLAIMER,
+  preflightRows,
+} from "@/lib/change";
 import { formatValue, reasonText } from "@/lib/format";
 
 const MapView = dynamic(() => import("./MapView"), { ssr: false });
@@ -26,9 +40,11 @@ const OUTCOME_TEXT: Record<string, string> = {
 };
 
 function errText(e: unknown): string {
-  if (e instanceof ApiError) return `${e.code}: ${e.message}`;
-  return e instanceof Error ? e.message : String(e);
+  if (e instanceof ApiError) return `${ERROR_PREFIX[errorKind(e.status)]} (${e.status} ${e.code}): ${e.message}`;
+  return `${ERROR_PREFIX.network}: ${e instanceof Error ? e.message : String(e)}`;
 }
+
+type Mode = "snapshot" | "change";
 
 export default function Workspace() {
   const [project, setProject] = useState<Project | null>(null);
@@ -38,8 +54,16 @@ export default function Workspace() {
   const [pending, setPending] = useState<GeoJSON.Polygon | null>(null);
   const [aoiName, setAoiName] = useState("");
   const [geojsonText, setGeojsonText] = useState("");
+  const [mode, setMode] = useState<Mode>("snapshot");
   const [start, setStart] = useState("2024-06-01");
   const [end, setEnd] = useState("2024-08-15");
+  const [startB, setStartB] = useState("2025-06-01");
+  const [endB, setEndB] = useState("2025-08-15");
+  // A preflight describes exactly the inputs it was run for; it does not apply to other inputs.
+  const [preflightRun, setPreflightRun] = useState<{ key: string; result: ChangePreflight } | null>(null);
+  const [events, setEvents] = useState<ChangeFeatureCollection | null>(null);
+  const [showEvents, setShowEvents] = useState(true);
+  const [selectedEvents, setSelectedEvents] = useState<number[]>([]);
   const [search, setSearch] = useState<CatalogSearchOut | null>(null);
   const [analyses, setAnalyses] = useState<AnalysisSummary[]>([]);
   const [job, setJob] = useState<Job | null>(null);
@@ -83,13 +107,21 @@ export default function Workspace() {
   const openAnalysis = useCallback(async (id: string) => {
     const d = await api.analysis(id);
     setDetail(d);
+    setSelectedEvents([]);
     if (d.status === "succeeded") {
       const ls = await api.layers(id);
       setLayers(ls);
-      setLayer(ls.find((l) => l.name === "true_colour") ?? ls[0] ?? null);
+      if (d.type === "change") {
+        setLayer(ls.find((l) => l.name.startsWith("delta:ndvi")) ?? ls.find((l) => l.name === "true_colour") ?? ls[0] ?? null);
+        setEvents(await api.changes(id)); // persisted events; never recomputed client-side
+      } else {
+        setLayer(ls.find((l) => l.name === "true_colour") ?? ls[0] ?? null);
+        setEvents(null);
+      }
     } else {
       setLayers([]);
       setLayer(null);
+      setEvents(null);
     }
   }, []);
 
@@ -125,16 +157,28 @@ export default function Workspace() {
   const aoiAnalyses = useMemo(() => analyses.filter((a) => a.aoi_id === aoi?.id), [analyses, aoi]);
   const coverageEv = detail?.evidence.find((e) => e.kind === "coverage_statistic");
   const indexEv = detail?.evidence.find((e) => e.kind === "index_statistic" && e.index === index);
-  const years = detail ? `${String(detail.period_start).slice(0, 4)}` : "";
+  const years = detail
+    ? [...new Set([String(detail.period_start).slice(0, 4), detail.period_b_start ? String(detail.period_b_start).slice(0, 4) : ""])]
+        .filter(Boolean)
+        .join(", ")
+    : "";
+  const periodA = { start, end };
+  const periodB = { start: startB, end: endB };
+  const colours = useMemo(() => categoryColours(layers), [layers]);
+  const inputsKey = JSON.stringify([aoi?.id ?? null, start, end, startB, endB]);
+  const preflight = preflightRun?.key === inputsKey ? preflightRun.result : null;
 
   return (
     <div className="flex h-screen flex-col text-neutral-900">
       <header className="flex items-center justify-between border-b border-neutral-200 px-4 py-2">
         <div>
           <span className="font-semibold tracking-tight">Aether</span>
-          <span className="ml-2 text-sm text-neutral-500">Evidence-first Earth-observation snapshot analysis · Phase 1</span>
+          <span className="ml-2 text-sm text-neutral-500">Evidence-first Earth-observation analysis</span>
         </div>
-        <span className="text-xs text-neutral-500">Sentinel-2 L2A (Earth Search, sentinel-2-c1-l2a) · single period · no change detection</span>
+        <span className="text-xs text-neutral-500">
+          Sentinel-2 L2A (Earth Search, sentinel-2-c1-l2a) ·{" "}
+          {mode === "snapshot" ? "snapshot: single period, no change detection" : "change: Period A → Period B, Δ = B − A"}
+        </span>
       </header>
       {error && (
         <div role="alert" className="border-b border-red-200 bg-red-50 px-4 py-2 text-sm text-red-800">
@@ -182,14 +226,85 @@ export default function Workspace() {
           </section>
 
           <section className="space-y-2">
-            <h2 className="font-semibold">2 · Period (30–120 days)</h2>
+            <h2 className="font-semibold">2 · Analysis mode</h2>
+            <div className="flex gap-1" role="radiogroup" aria-label="Analysis mode">
+              {(["snapshot", "change"] as const).map((m) => (
+                <button key={m} role="radio" aria-checked={mode === m}
+                  className={`rounded border px-2 py-1 ${mode === m ? "bg-neutral-900 text-white" : ""}`} onClick={() => setMode(m)}>
+                  {m === "snapshot" ? "Snapshot" : "Change (A → B)"}
+                </button>
+              ))}
+            </div>
+          </section>
+
+          {mode === "change" && (
+            <section className="space-y-2" aria-label="Change analysis setup">
+              <h2 className="font-semibold">3 · Periods (30–120 days each, season-matched)</h2>
+              <fieldset className="space-y-1">
+                <legend className="text-xs font-semibold">Period A</legend>
+                <div className="flex gap-2">
+                  <input type="date" className="w-1/2 rounded border px-1 py-1" value={start} onChange={(e) => setStart(e.target.value)} aria-label="Period A start" />
+                  <input type="date" className="w-1/2 rounded border px-1 py-1" value={end} onChange={(e) => setEnd(e.target.value)} aria-label="Period A end" />
+                </div>
+              </fieldset>
+              <fieldset className="space-y-1">
+                <legend className="text-xs font-semibold">Period B</legend>
+                <div className="flex gap-2">
+                  <input type="date" className="w-1/2 rounded border px-1 py-1" value={startB} onChange={(e) => setStartB(e.target.value)} aria-label="Period B start" />
+                  <input type="date" className="w-1/2 rounded border px-1 py-1" value={endB} onChange={(e) => setEndB(e.target.value)} aria-label="Period B end" />
+                </div>
+              </fieldset>
+              <p className="text-[11px] text-neutral-500">Δ = B − A · positive = index increased. Thresholds are frozen defaults; there are no adjustable parameters.</p>
+              <button disabled={!aoi || !!busy} className="w-full rounded border px-2 py-1 disabled:opacity-40"
+                onClick={() => run("Running change preflight", async () => setPreflightRun({ key: inputsKey, result: await api.changePreflight(aoi!.id, periodA, periodB) }))}>
+                4 · Preflight (metadata only)
+              </button>
+              {preflight && (
+                <div className="space-y-1 rounded border p-2 text-xs" aria-label="Change preflight">
+                  <p className="text-neutral-600">{PREFLIGHT_DISCLAIMER}</p>
+                  <p>Pair rules: {preflight.pair_rules}</p>
+                  <table className="w-full">
+                    <thead className="text-left text-neutral-500"><tr><th></th><th>Dates</th><th>Items</th><th>Eligible obs.</th></tr></thead>
+                    <tbody>
+                      {preflightRows(preflight).map((r) => (
+                        <tr key={r.period} className="border-t">
+                          <td className="font-semibold">{r.label}</td>
+                          <td>{r.range}</td>
+                          <td className="tabular-nums">{r.items}</td>
+                          <td className={`tabular-nums ${r.sufficient ? "" : "text-amber-800"}`}>{r.observations} (≥ {r.needed}){r.sufficient ? "" : " — too few"}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  <p className={preflight.coregistration_assessable_by_extent ? "" : "text-amber-900"}>
+                    Co-registration {preflight.coregistration_assessable_by_extent ? "assessable by extent" : "not assessable by extent"}: {preflight.coregistration_note}
+                  </p>
+                  <p className="text-neutral-500">Outcome order during processing: {preflight.outcome_order.join(" → ")}.</p>
+                </div>
+              )}
+              <button disabled={!aoi || !!busy || !preflight} className="w-full rounded bg-neutral-900 px-2 py-1 text-white disabled:opacity-40"
+                onClick={() => run("Submitting change analysis", async () => {
+                  const s = await api.submitChange(aoi!.id, periodA, periodB);
+                  if (s.job_id) setJob(await api.job(s.job_id));
+                  await refreshAnalyses();
+                  if (s.cached) await openAnalysis(s.analysis_run_id);
+                })}>
+                5 · Run change analysis
+              </button>
+              {!preflight && <p className="text-[11px] text-neutral-500">Run the preflight for these inputs first.</p>}
+            </section>
+          )}
+
+          {mode === "snapshot" && (
+          <section className="space-y-2">
+            <h2 className="font-semibold">3 · Period (30–120 days)</h2>
             <div className="flex gap-2">
               <input type="date" className="w-1/2 rounded border px-1 py-1" value={start} onChange={(e) => setStart(e.target.value)} aria-label="Period start" />
               <input type="date" className="w-1/2 rounded border px-1 py-1" value={end} onChange={(e) => setEnd(e.target.value)} aria-label="Period end" />
             </div>
             <button disabled={!aoi || !!busy} className="w-full rounded border px-2 py-1 disabled:opacity-40"
               onClick={() => run("Searching Earth Search", async () => setSearch(await api.search(aoi!.id, start, end)))}>
-              3 · Discover Sentinel-2 scenes
+              4 · Discover Sentinel-2 scenes
             </button>
             {search && (
               <div className="space-y-1">
@@ -225,8 +340,12 @@ export default function Workspace() {
                 await refreshAnalyses();
                 if (s.cached) await openAnalysis(s.analysis_run_id);
               })}>
-              4 · Run snapshot analysis
+              5 · Run snapshot analysis
             </button>
+          </section>
+          )}
+
+          <section className="space-y-2">
             {job && (
               <div className="rounded bg-neutral-50 p-2 text-xs" aria-live="polite">
                 Job {job.status} · stage {job.stage ?? "—"} · {(job.progress * 100).toFixed(0)} %
@@ -239,12 +358,15 @@ export default function Workspace() {
           </section>
 
           <section className="space-y-1">
-            <h2 className="font-semibold">Snapshots of this AOI</h2>
+            <h2 className="font-semibold">Analyses of this AOI</h2>
             {aoiAnalyses.length === 0 && <p className="text-xs text-neutral-500">none yet</p>}
             {aoiAnalyses.map((a) => (
               <button key={a.id} onClick={() => run("Loading analysis", () => openAnalysis(a.id))}
                 className={`block w-full rounded border px-2 py-1 text-left text-xs ${detail?.id === a.id ? "border-neutral-900" : ""}`}>
-                {a.period_start} → {a.period_end} · {a.status}{a.outcome ? ` · ${a.outcome}` : ""}
+                {a.type === "change"
+                  ? `Change · A ${periodRange({ start: String(a.period_start), end: String(a.period_end) })} · B ${periodRange({ start: String(a.period_b_start), end: String(a.period_b_end) })}`
+                  : `Snapshot · ${a.period_start} → ${a.period_end}`}
+                {` · ${a.status}`}{a.outcome ? ` · ${a.outcome}` : ""}
               </button>
             ))}
           </section>
@@ -254,22 +376,47 @@ export default function Workspace() {
         {/* Centre: map */}
         <main className="relative min-w-0 flex-1">
           <MapView aoiGeometry={(pending ?? aoi?.geometry ?? null) as GeoJSON.Geometry | null} rasterLayer={layer}
-            opacity={opacity} drawMode={drawMode} onDrawn={(g) => { setPending(g); setDrawMode("none"); }} attributionYears={years} />
+            opacity={opacity} drawMode={drawMode} onDrawn={(g) => { setPending(g); setDrawMode("none"); }} attributionYears={years}
+            events={showEvents ? events : null} eventColours={colours} selectedEvent={selectedEvents[0] ?? null} onSelectEvents={setSelectedEvents} />
           {layer && (
             <div className="absolute left-2 top-2 max-w-xs rounded bg-white/95 p-2 text-xs shadow">
-              <div className="font-semibold">{layer.name.replace("index:", "").toUpperCase()}</div>
+              <div className="font-semibold">
+                {layer.period ? `${PERIOD_LABEL[layer.period]} · ` : ""}{detail?.type === "change" ? layerLabel(layer) : layer.name.replace("index:", "").toUpperCase()}
+              </div>
               <div>{String(layer.legend.unit ?? layer.legend.meaning ?? "")}</div>
               {Array.isArray(layer.legend.range) && <div>range {String(layer.legend.range[0])} … {String(layer.legend.range[1])} ({String(layer.legend.colormap ?? layer.legend.stretch)})</div>}
+              {Array.isArray(layer.legend.classes) && (
+                <ul className="mt-1 space-y-0.5">
+                  {(layer.legend.classes as { code: number; category: string; colour: string }[]).map((c) => (
+                    <li key={c.code} className="flex items-center gap-1">
+                      <span className="inline-block h-3 w-3 rounded-sm" style={{ background: c.colour }} />{c.category.replaceAll("_", " ")}
+                    </li>
+                  ))}
+                  <li className="text-neutral-500">display colours (provisional, C-08)</li>
+                </ul>
+              )}
               {typeof layer.legend.note === "string" && <div className="text-neutral-500">{layer.legend.note}</div>}
-              <div className="text-neutral-500">{layer.grid} · {layer.resolution_m} m · {detail?.period_start} → {detail?.period_end}</div>
+              <div className="text-neutral-500">
+                {layer.grid} · {layer.resolution_m} m ·{" "}
+                {layer.period === "b" && detail?.period_b_start
+                  ? `${detail.period_b_start} → ${detail.period_b_end}`
+                  : layer.period === "delta" && detail?.period_b_start
+                    ? `A ${detail.period_start} → ${detail.period_end} · B ${detail.period_b_start} → ${detail.period_b_end}`
+                    : `${detail?.period_start} → ${detail?.period_end}`}
+              </div>
             </div>
           )}
         </main>
 
         {/* Right: results and evidence */}
         <aside className="w-96 shrink-0 space-y-3 overflow-y-auto border-l border-neutral-200 p-3 text-sm">
-          {!detail && <p className="text-neutral-500">Run or select a snapshot to see evidence.</p>}
-          {detail && (
+          {!detail && <p className="text-neutral-500">Run or select an analysis to see evidence.</p>}
+          {detail?.type === "change" && (
+            <ChangePanel detail={detail} job={job?.analysis_run_id === detail.id ? job : (detail.job ?? null)} layers={layers} layer={layer}
+              onLayer={setLayer} opacity={opacity} onOpacity={setOpacity} events={events} showEvents={showEvents}
+              onShowEvents={setShowEvents} selected={selectedEvents} onSelect={setSelectedEvents} />
+          )}
+          {detail && detail.type !== "change" && (
             <>
               <section className="space-y-1">
                 <h2 className="font-semibold">Snapshot {detail.period_start} → {detail.period_end}</h2>
@@ -282,8 +429,8 @@ export default function Workspace() {
                 <section className="space-y-1">
                   <h3 className="font-semibold">Layers</h3>
                   {layers.map((l) => (
-                    <label key={`${l.artifact_id}-${l.render}`} className="flex items-center gap-2 text-xs">
-                      <input type="radio" name="layer" checked={layer?.name === l.name} onChange={() => setLayer(l)} />
+                    <label key={layerKey(l)} className="flex items-center gap-2 text-xs">
+                      <input type="radio" name="layer" checked={!!layer && layerKey(layer) === layerKey(l)} onChange={() => setLayer(l)} />
                       {l.name === "true_colour" ? "True colour (display composite)" : l.name.startsWith("insufficient") ? `No reliable data (${l.name.split(":")[1]})` : l.name}
                     </label>
                   ))}
