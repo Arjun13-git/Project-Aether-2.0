@@ -41,8 +41,8 @@ class Rendering:
 INDEX_CMAPS = {"ndvi": "brbg", "ndwi": "rdbu", "mndwi": "rdbu", "ndbi": "puor"}  # colour-blind-safe diverging
 N_VALID_MAX = 30
 DELTA_RANGE = (-0.5, 0.5)  # ADR-021: deltas −0.5…0.5 diverging, centred on 0
-# C5 §6 category codes → Okabe–Ito colour-blind-safe palette. Provisional fixed palette (C-08: final
-# styling is recorded in the ADR-021 addendum of the UI commit); code 0 (none) is transparent.
+# C5 §6 category codes → Okabe–Ito colour-blind-safe palette. Fixed palette (C-08), recorded in the
+# ADR-021 addendum accepted 2026-11-09 (display convention only); code 0 (none) is transparent.
 CATEGORY_PALETTE: dict[int, tuple[str, str]] = {
     1: ("water_increase", "#0072B2"),
     2: ("water_decrease", "#56B4E9"),

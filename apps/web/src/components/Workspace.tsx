@@ -392,7 +392,7 @@ export default function Workspace() {
                       <span className="inline-block h-3 w-3 rounded-sm" style={{ background: c.colour }} />{c.category.replaceAll("_", " ")}
                     </li>
                   ))}
-                  <li className="text-neutral-500">display colours (provisional, C-08)</li>
+                  <li className="text-neutral-500">display colours (C-08)</li>
                 </ul>
               )}
               {typeof layer.legend.note === "string" && <div className="text-neutral-500">{layer.legend.note}</div>}

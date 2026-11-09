@@ -31,9 +31,17 @@ These are stated on purpose. Where a limitation applies to a result, it is attac
 - **MNDWI and NDBI are 20 m** quantities replicated to 10 m by nearest neighbour for event extraction (`index_resolution_20m`).
 
 ## Display and validation
-- **The category palette is not yet accepted.** Display colours are the Okabe–Ito palette pinned in tests. The ADR-021 addendum recording them is proposed, not accepted, so the UI labels them "provisional, C-08".
+- **The category palette is a display convention.** The change-layer vocabulary and the Okabe–Ito category palette are fixed (ADR-021 addendum, accepted 2026-11-09) and pinned in tests. Colours carry no scientific meaning beyond the C5 §6 category they label.
+- **EPSG:4326 copies of adjacent events can overlap by slivers.** The authoritative event geometry is the native UTM, pixel-edge `change_events.gpkg`; the GeoJSON in `GET /changes` and the evidence geometry are EPSG:4326 reprojections of it. Where events of different categories share a pixel edge, the reprojected copies can intersect in tiny slivers (about 0.00005–0.0045 m² in the two live runs, against 100 m² pixels). These are a representation artifact, not event overlap. Overlap and area semantics are defined in native UTM; event and changed areas come from pixel counts. Consumers intersecting the EPSG:4326 geometries should expect these slivers, or use the GeoPackage.
 - **The Δ layers show the whole analysis grid** wherever both composites are defined (NaN outside sufficiency, plan P5), including outside the AOI. Statistics and events use only `joint_valid` pixels inside the AOI; the "not compared" layer shows the excluded area.
 - **Real-data validation is two runs.** They used the Davis CA and Alviso CA demo AOIs (2023 vs 2024 summer). Cross-category event overlap (C-17) has been exercised on synthetic data only; neither real run produced overlapping events.
+
+## Dependency security
+This is separate from scientific readiness.
+- **Next.js** is on 16.4.5, with `eslint-config-next` 16.4.5. The advisories affecting 16.4.0 (GHSA-2464-fhr4-w9xw, GHSA-673q-mjm6-r5xr, GHSA-p3m5-59mp-jv5r) are fixed in 16.4.1 and later.
+- **One moderate advisory remains: GHSA-g3hv-75wg-m249 in `minimatch`** (10.2.6, fixed in 11.0.1). It is a development dependency, reached only through the lint toolchain (`eslint-config-next` → `eslint-plugin-import` / `typescript-eslint` → `@typescript-eslint/parser` → `@typescript-eslint/typescript-estree` → `minimatch`). It is not part of the built application or its runtime.
+- It is not force-overridden: `@typescript-eslint/typescript-estree` declares `minimatch@^10.2.2`, so a fix needs a major-version override outside that range. It is to be resolved by an upstream lint-toolchain update.
+- `pnpm audit` therefore reports one moderate finding. This is not a security review of the project.
 
 ## Scope (by design)
 - No VHR imagery, object or building detection, learned change models, segmentation, Sentinel-1, Dynamic World or other land-cover products.
