@@ -9,7 +9,7 @@ import type { Map as MlMap } from "maplibre-gl";
 import { TerraDraw, TerraDrawPolygonMode, TerraDrawRectangleMode, TerraDrawSelectMode } from "terra-draw";
 import { TerraDrawMapLibreGLAdapter } from "terra-draw-maplibre-gl-adapter";
 import { useEffect, useRef } from "react";
-import type { Layer } from "@/lib/api";
+import type { ChangeFeatureCollection, Layer } from "@/lib/api";
 
 const STYLE = "https://tiles.openfreemap.org/styles/positron";
 // The OpenFreeMap style already carries "OpenFreeMap © OpenMapTiles Data from OpenStreetMap";
@@ -28,19 +28,42 @@ type Props = {
   drawMode: DrawMode;
   onDrawn: (geometry: GeoJSON.Polygon) => void;
   attributionYears: string;
+  // Change events (EPSG:4326 copy from /changes). One map feature per event; nothing is merged,
+  // dissolved, clipped or simplified. Colours come from the API's category-layer legend.
+  events?: ChangeFeatureCollection | null;
+  eventColours?: Record<string, string>;
+  selectedEvent?: number | null;
+  onSelectEvents?: (ids: number[]) => void;
 };
 
-export default function MapView({ aoiGeometry, rasterLayer, opacity, drawMode, onDrawn, attributionYears }: Props) {
+const EVENT_LAYERS = ["events-fill", "events-line", "events-selected"] as const;
+
+export default function MapView({
+  aoiGeometry,
+  rasterLayer,
+  opacity,
+  drawMode,
+  onDrawn,
+  attributionYears,
+  events = null,
+  eventColours = {},
+  selectedEvent = null,
+  onSelectEvents,
+}: Props) {
   const container = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MlMap | null>(null);
   const drawRef = useRef<TerraDraw | null>(null);
   const readyRef = useRef(false);
   const attributionRef = useRef<maplibregl.AttributionControl | null>(null);
   const onDrawnRef = useRef(onDrawn);
+  const onSelectRef = useRef(onSelectEvents);
   const pendingRef = useRef<Array<() => void>>([]);
   useEffect(() => {
     onDrawnRef.current = onDrawn;
   }, [onDrawn]);
+  useEffect(() => {
+    onSelectRef.current = onSelectEvents;
+  }, [onSelectEvents]);
 
   // Run fn once the map style and drawing are ready.
   const whenReady = (fn: () => void) => {
@@ -73,6 +96,13 @@ export default function MapView({ aoiGeometry, rasterLayer, opacity, drawMode, o
         draw.clear();
       });
       drawRef.current = draw;
+      map.on("click", "events-fill", (e) => {
+        // Overlapping events (C-17) are all reported, in feature order; the panel lists them.
+        const ids = [...new Set((e.features ?? []).map((f) => Number(f.id)))].sort((x, y) => x - y);
+        if (ids.length) onSelectRef.current?.(ids);
+      });
+      map.on("mouseenter", "events-fill", () => (map.getCanvas().style.cursor = "pointer"));
+      map.on("mouseleave", "events-fill", () => (map.getCanvas().style.cursor = ""));
       readyRef.current = true;
       pendingRef.current.splice(0).forEach((fn) => fn());
     });
@@ -139,6 +169,33 @@ export default function MapView({ aoiGeometry, rasterLayer, opacity, drawMode, o
     const map = mapRef.current;
     if (map?.getLayer("raster")) map.setPaintProperty("raster", "raster-opacity", opacity);
   }, [opacity]);
+
+  // Change-event vectors above the raster, below the AOI outline.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    const apply = () => {
+      for (const id of EVENT_LAYERS) if (map.getLayer(id)) map.removeLayer(id);
+      if (map.getSource("events")) map.removeSource("events");
+      if (!events || events.features.length === 0) return;
+      map.addSource("events", { type: "geojson", data: events as unknown as GeoJSON.FeatureCollection });
+      const pairs = Object.entries(eventColours).flat();
+      const colour = (pairs.length ? ["match", ["get", "category"], ...pairs, "#444444"] : "#444444") as unknown as maplibregl.ExpressionSpecification;
+      const before = map.getLayer("aoi-line") ? "aoi-line" : undefined;
+      map.addLayer({ id: "events-fill", type: "fill", source: "events", paint: { "fill-color": colour, "fill-opacity": 0.25 } }, before);
+      map.addLayer({ id: "events-line", type: "line", source: "events", paint: { "line-color": colour, "line-width": 1.5 } }, before);
+      map.addLayer(
+        { id: "events-selected", type: "line", source: "events", paint: { "line-color": "#111111", "line-width": 3 }, filter: ["==", ["id"], -1] },
+        before,
+      );
+    };
+    whenReady(apply);
+  }, [events, eventColours]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (map?.getLayer("events-selected")) map.setFilter("events-selected", ["==", ["id"], selectedEvent ?? -1]);
+  }, [selectedEvent, events]);
 
   return <div ref={container} className="h-full w-full" role="region" aria-label="Map" />;
 }
