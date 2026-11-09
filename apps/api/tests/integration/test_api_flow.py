@@ -105,6 +105,7 @@ def test_full_snapshot_workflow(setup):
     assert detail["job"]["status"] == "succeeded"
     inputs = {i["item_id"]: (i["status"], i["reason_code"]) for i in detail["inputs"]}
     assert inputs["S2B_OLD"] == ("excluded", "baseline_unsupported") and inputs["S2B_I3"] == ("used", None)
+    assert {i["period"] for i in detail["inputs"]} == {"a"}  # snapshot inputs are recorded as period "a"
     assert {c["calibration"] for c in detail["calibration"]} == {"untuned"}
 
     kinds = sorted(e["kind"] for e in detail["evidence"])

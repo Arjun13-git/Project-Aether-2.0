@@ -884,6 +884,11 @@ export interface components {
         RunInput: {
             /** Item Id */
             item_id: string;
+            /**
+             * Period
+             * @enum {string}
+             */
+            period: "a" | "b";
             /** Datatake Id */
             datatake_id: string | null;
             /** Status */

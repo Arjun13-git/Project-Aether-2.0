@@ -245,6 +245,13 @@ export function provenanceSummary(p: Provenance) {
   return { steps: [...steps.values()], scenes };
 }
 
+/** Run inputs grouped by the period the API recorded for each (`inputs[].period`), A then B; API order within. */
+export function sourceGroups(inputs: AnalysisDetail["inputs"]) {
+  return (["a", "b"] as const)
+    .map((p) => ({ period: p, label: PERIOD_LABEL[p], inputs: inputs.filter((i) => i.period === p) }))
+    .filter((g) => g.inputs.length > 0);
+}
+
 // --- runtime parsing of the payloads the change UI depends on ------------------------------------------
 
 function fail(what: string): never {

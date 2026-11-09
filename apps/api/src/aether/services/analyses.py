@@ -266,7 +266,7 @@ def get_analysis(conn: Connection, run_id: uuid.UUID) -> dict[str, Any]:
         dict(r)
         for r in conn.execute(
             text(
-                """SELECT s.item_id, i.datatake_id, i.status, i.reason_code, s.acquired_at, s.platform,
+                """SELECT s.item_id, i.period, i.datatake_id, i.status, i.reason_code, s.acquired_at, s.platform,
                   s.processing_baseline
            FROM analysis_run_inputs i JOIN scenes s ON s.id = i.scene_id
            WHERE i.analysis_run_id=:id ORDER BY s.acquired_at, s.item_id"""

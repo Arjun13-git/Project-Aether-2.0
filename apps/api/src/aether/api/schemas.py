@@ -151,6 +151,7 @@ class EvidenceRef(BaseModel):
 
 class RunInput(BaseModel):
     item_id: str
+    period: Literal["a", "b"]  # analysis_run_inputs.period as recorded; snapshot runs record "a"
     datatake_id: str | None
     status: str
     reason_code: str | None

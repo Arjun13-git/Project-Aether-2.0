@@ -15,6 +15,7 @@ import {
   periodRange,
   runState,
   signRows,
+  sourceGroups,
 } from "@/lib/change";
 import { formatValue, label } from "@/lib/format";
 
@@ -160,14 +161,19 @@ export default function ChangePanel(p: Props) {
           ))}
         </ul>
         <p className="text-neutral-500">Change thresholds are untuned engineering defaults, not calibrated values.</p>
-        <h3 className="font-semibold">Sources (Period A and Period B)</h3>
-        <ul className="max-h-40 overflow-auto">
-          {detail.inputs.map((i) => (
-            <li key={i.item_id} title={i.item_id} className={i.status === "excluded" ? "text-amber-800" : ""}>
-              {String(i.acquired_at).slice(0, 10)} · {i.platform} · {i.status}{i.reason_code ? ` (${i.reason_code})` : ""}
-            </li>
-          ))}
-        </ul>
+        <h3 className="font-semibold">Sources</h3>
+        {sourceGroups(detail.inputs).map((g) => (
+          <section key={g.period} aria-label={`${g.label} sources`}>
+            <h4 className="text-neutral-600">{g.label} sources ({g.inputs.length})</h4>
+            <ul className="max-h-40 overflow-auto">
+              {g.inputs.map((i) => (
+                <li key={i.item_id} title={i.item_id} className={i.status === "excluded" ? "text-amber-800" : ""}>
+                  {String(i.acquired_at).slice(0, 10)} · {i.platform} · {i.status}{i.reason_code ? ` (${i.reason_code})` : ""}
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))}
         <p className="text-neutral-500">Versions: {Object.values(detail.algorithm_versions).join(", ")}</p>
       </section>
     </>

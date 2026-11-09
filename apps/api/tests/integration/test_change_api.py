@@ -224,6 +224,18 @@ def test_completed_result_detail_evidence_and_provenance(ctx):
         "coreg_max_residual_px",
     }
     assert {c["calibration"] for c in detail["calibration"]} == {"untuned", "product_choice"}
+    with ctx.engine.connect() as conn:
+        recorded = dict(
+            conn.execute(
+                text(
+                    "SELECT s.item_id, i.period FROM analysis_run_inputs i JOIN scenes s ON s.id = i.scene_id "
+                    "WHERE i.analysis_run_id = :r"
+                ),
+                {"r": run_id},
+            ).all()
+        )
+    assert {i["item_id"]: i["period"] for i in detail["inputs"]} == recorded  # exposed exactly as recorded
+    assert {i["period"] for i in detail["inputs"]} == {"a", "b"}
     kinds = [e["kind"] for e in detail["evidence"]]
     assert kinds.count("change_event") == 1 and kinds.count("change_summary") == 1 and kinds.count("coregistration_check") == 1
     idx = [(e["index"], e["period"]) for e in detail["evidence"] if e["kind"] == "index_statistic"]

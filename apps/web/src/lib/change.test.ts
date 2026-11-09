@@ -26,6 +26,7 @@ import {
   runState,
   signRows,
   snapshotRequestBody,
+  sourceGroups,
 } from "./change.ts";
 import { formatValue, label } from "./format.ts";
 
@@ -265,6 +266,17 @@ test("provenance summary groups by the period the API recorded", () => {
   assert.deepEqual(s.steps.find((r) => r.kind === "source_read"), { kind: "source_read", a: 1, b: 1, none: 0 });
   assert.deepEqual(s.steps.find((r) => r.kind === "coregistration"), { kind: "coregistration", a: 0, b: 0, none: 1 });
   assert.deepEqual(s.scenes.map((g) => [g.label, g.scenes.map((x) => x.item_id)]), [["Period A", ["2"]], ["Period B", ["1"]]]);
+});
+
+test("sources are grouped by the period the API recorded, A then B, nothing dropped or invented", () => {
+  const groups = sourceGroups(detail.inputs);
+  assert.deepEqual(groups.map((g) => [g.period, g.label]), [["a", "Period A"], ["b", "Period B"]]);
+  assert.equal(groups.reduce((n, g) => n + g.inputs.length, 0), detail.inputs.length);
+  for (const g of groups) assert.ok(g.inputs.every((i) => i.period === g.period));
+  // In the captured synthetic world Period A is 2023 and Period B 2024; the grouping follows the field.
+  assert.ok(groups[0].inputs.every((i) => String(i.acquired_at).startsWith("2023")));
+  assert.ok(groups[1].inputs.every((i) => String(i.acquired_at).startsWith("2024")));
+  assert.deepEqual(sourceGroups([]), []);
 });
 
 test("a fixture preflight is typed as ChangePreflight", () => {
